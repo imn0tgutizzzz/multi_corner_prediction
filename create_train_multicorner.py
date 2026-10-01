@@ -1,13 +1,18 @@
 import pandas as pd
+import numpy as np
 from pathlib import Path
 
 
+# ============================================================
 # Carpeta donde están los CSV
+# ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent
 
 
+# ============================================================
 # Recuperar Label Delay
+# ============================================================
 
 def obtener_label_delay(df, nombre):
     """
@@ -31,7 +36,9 @@ def obtener_label_delay(df, nombre):
     return df["Delay"] + df["Delta"]
 
 
+# ============================================================
 # Crear dataset multicorner
+# ============================================================
 
 def crear_multicorner(
     typical_file,
@@ -45,7 +52,9 @@ def crear_multicorner(
     print(f"CREANDO: {output_file}")
     print("=" * 60)
 
+    # --------------------------------------------------------
     # Cargar datos
+    # --------------------------------------------------------
 
     typical = pd.read_csv(BASE_DIR / typical_file)
     slow = pd.read_csv(BASE_DIR / slow_file)
@@ -55,7 +64,9 @@ def crear_multicorner(
     print(f"Slow:    {len(slow)} filas")
     print(f"Fast:    {len(fast)} filas")
 
+    # --------------------------------------------------------
     # Claves para hacer el matching
+    # --------------------------------------------------------
 
     keys = [
         "Description",
@@ -73,7 +84,9 @@ def crear_multicorner(
     print("\nClaves utilizadas para matching:")
     print(keys)
 
+    # --------------------------------------------------------
     # Verificar que las columnas existan
+    # --------------------------------------------------------
 
     for nombre, df in [
         ("Typical", typical),
@@ -86,7 +99,9 @@ def crear_multicorner(
                     f'La columna "{key}" no existe en {nombre}'
                 )
 
+    # --------------------------------------------------------
     # Comprobar duplicados
+    # --------------------------------------------------------
 
     print("\nComprobando claves duplicadas...")
 
@@ -109,7 +124,9 @@ def crear_multicorner(
                 f"Hay correspondencias ambiguas en {nombre}"
             )
 
+    # --------------------------------------------------------
     # Recuperar Label Delay
+    # --------------------------------------------------------
 
     typical["Label_Delay_Typical"] = (
         obtener_label_delay(
@@ -132,7 +149,9 @@ def crear_multicorner(
         )
     )
 
+    # --------------------------------------------------------
     # Verificar correspondencia entre corners
+    # --------------------------------------------------------
 
     typical_keys = set(
         map(tuple, typical[keys].values)
@@ -163,7 +182,9 @@ def crear_multicorner(
         typical_keys == slow_keys == fast_keys
     )
 
+    # --------------------------------------------------------
     # Encontrar solamente muestras presentes en los 3 corners
+    # --------------------------------------------------------
 
     comunes = (
         typical_keys
@@ -191,7 +212,9 @@ def crear_multicorner(
         len(fast_keys - comunes)
     )
 
+    # --------------------------------------------------------
     # Seleccionar labels Slow y Fast
+    # --------------------------------------------------------
 
     slow_labels = slow[
         keys + ["Label_Delay_Slow"]
@@ -201,7 +224,9 @@ def crear_multicorner(
         keys + ["Label_Delay_Fast"]
     ].copy()
 
+    # --------------------------------------------------------
     # Matching
+    # --------------------------------------------------------
 
     result = typical.merge(
         slow_labels,
@@ -217,7 +242,9 @@ def crear_multicorner(
         validate="one_to_one"
     )
 
+    # --------------------------------------------------------
     # Poner los tres labels al final
+    # --------------------------------------------------------
 
     label_columns = [
         "Label_Delay_Typical",
@@ -235,7 +262,127 @@ def crear_multicorner(
         feature_columns + label_columns
     ]
 
+    # ========================================================
+    # CORRECCIÓN DEL ORDEN DE LOS CORNERS
+    # ========================================================
+    #
+    # En algunos registros los valores de Label Delay pueden
+    # quedar asociados a los corners en un orden incorrecto,
+    # provocando casos donde Slow resulta más rápido que Fast
+    # o Typical queda como el valor más lento.
+    #
+    # Para corregirlo, se toman únicamente los tres valores
+    # Label_Delay de cada fila y se ordenan de menor a mayor:
+    #
+    #     menor       -> Fast
+    #     intermedio  -> Typical
+    #     mayor       -> Slow
+    #
+    # Este procedimiento NO cambia las demás características
+    # de la fila, NO cambia el orden de las filas y NO cambia
+    # los nombres de los archivos CSV generados.
+    # ========================================================
+
+    print("\nCorrigiendo orden Fast <= Typical <= Slow...")
+
+    # Contar cuántas filas están desordenadas antes de corregir
+    filas_desordenadas = ~(
+        (result["Label_Delay_Fast"]
+         <= result["Label_Delay_Typical"])
+        &
+        (result["Label_Delay_Typical"]
+         <= result["Label_Delay_Slow"])
+    )
+
+    cantidad_desordenadas = filas_desordenadas.sum()
+
+    print(
+        "Filas con orden incorrecto antes del sort:",
+        cantidad_desordenadas
+    )
+
+    # Extraer los tres valores de cada fila y ordenarlos
+    labels_ordenados = np.sort(
+        result[
+            [
+                "Label_Delay_Fast",
+                "Label_Delay_Typical",
+                "Label_Delay_Slow"
+            ]
+        ].to_numpy(),
+        axis=1
+    )
+
+    # Asignar el menor valor a Fast
+    result["Label_Delay_Fast"] = (
+        labels_ordenados[:, 0]
+    )
+
+    # Asignar el valor intermedio a Typical
+    result["Label_Delay_Typical"] = (
+        labels_ordenados[:, 1]
+    )
+
+    # Asignar el mayor valor a Slow
+    result["Label_Delay_Slow"] = (
+        labels_ordenados[:, 2]
+    )
+
+    # --------------------------------------------------------
+    # Verificar que la corrección haya funcionado
+    # --------------------------------------------------------
+
+    filas_incorrectas_final = ~(
+        (result["Label_Delay_Fast"]
+         <= result["Label_Delay_Typical"])
+        &
+        (result["Label_Delay_Typical"]
+         <= result["Label_Delay_Slow"])
+    )
+
+    cantidad_incorrectas_final = (
+        filas_incorrectas_final.sum()
+    )
+
+    print(
+        "Filas incorrectas después del sort:",
+        cantidad_incorrectas_final
+    )
+
+    if cantidad_incorrectas_final != 0:
+        raise ValueError(
+            "Todavía existen filas con un orden "
+            "Fast/Typical/Slow incorrecto."
+        )
+
+    print(
+        "Orden corregido correctamente:"
+        " Fast <= Typical <= Slow"
+    )
+
+    # --------------------------------------------------------
+    # Volver a colocar los labels en el orden deseado
+    # --------------------------------------------------------
+
+    label_columns = [
+        "Label_Delay_Typical",
+        "Label_Delay_Slow",
+        "Label_Delay_Fast"
+    ]
+
+    feature_columns = [
+        col
+        for col in result.columns
+        if col not in label_columns
+    ]
+
+    result = result[
+        feature_columns + label_columns
+    ]
+
+    # --------------------------------------------------------
     # Validaciones finales
+    # --------------------------------------------------------
 
     print("\nRESULTADO:")
 
@@ -262,7 +409,9 @@ def crear_multicorner(
         ].isna().sum()
     )
 
+    # --------------------------------------------------------
     # Guardar archivo
+    # --------------------------------------------------------
 
     output_path = BASE_DIR / output_file
 
@@ -275,11 +424,15 @@ def crear_multicorner(
     print(output_path)
 
 
+# ============================================================
 # MAIN
+# ============================================================
 
 if __name__ == "__main__":
 
+    # --------------------------------------------------------
     # TRAIN
+    # --------------------------------------------------------
 
     crear_multicorner(
         "treated_labels_train_typical.csv",
@@ -288,7 +441,9 @@ if __name__ == "__main__":
         "train_multicorner.csv"
     )
 
+    # --------------------------------------------------------
     # TEST LABELS
+    # --------------------------------------------------------
 
     crear_multicorner(
         "treated_labels_typical.csv",
@@ -297,7 +452,9 @@ if __name__ == "__main__":
         "test_labels_multicorner.csv"
     )
 
+    # --------------------------------------------------------
     # TEST DESIGNS
+    # --------------------------------------------------------
 
     crear_multicorner(
         "treated_test_designs_typical.csv",
