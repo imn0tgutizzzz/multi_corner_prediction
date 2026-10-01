@@ -3,13 +3,28 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import (
+    RandomForestRegressor,
+    GradientBoostingRegressor,
+)
+
 from sklearn.impute import SimpleImputer
+
 from sklearn.linear_model import Ridge
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error,
+    r2_score,
+)
+
 from sklearn.model_selection import train_test_split
+
 from sklearn.pipeline import Pipeline
+
 from sklearn.preprocessing import StandardScaler
+
+import joblib
 
 
 # ============================================================
@@ -18,51 +33,143 @@ from sklearn.preprocessing import StandardScaler
 
 BASE_DIR = Path(__file__).resolve().parent
 
-DATA_DIR = BASE_DIR
-
 RESULTS_DIR = BASE_DIR / "resultados_objetivo3"
-RESULTS_DIR.mkdir(exist_ok=True)
+
+RESULTS_DIR.mkdir(
+    exist_ok=True
+)
 
 
 # ============================================================
-# ARCHIVOS
+# ARCHIVOS DE ENTRENAMIENTO
 # ============================================================
 
-TRAIN_TYPICAL = DATA_DIR / "treated_labels_train_typical.csv"
-TRAIN_SLOW = DATA_DIR / "treated_labels_train_slow.csv"
-TRAIN_FAST = DATA_DIR / "treated_labels_train_fast.csv"
+TRAIN_TYPICAL = (
+    BASE_DIR / "treated_labels_train_typical.csv"
+)
 
-TEST_TYPICAL = DATA_DIR / "treated_test_designs_typical.csv"
-TEST_SLOW = DATA_DIR / "treated_test_designs_slow.csv"
-TEST_FAST = DATA_DIR / "treated_test_designs_fast.csv"
+TRAIN_SLOW = (
+    BASE_DIR / "treated_labels_train_slow.csv"
+)
+
+TRAIN_FAST = (
+    BASE_DIR / "treated_labels_train_fast.csv"
+)
 
 
 # ============================================================
-# FUNCIONES
+# ARCHIVOS TEST LABELS
 # ============================================================
+
+TEST_LABELS_TYPICAL = (
+    BASE_DIR / "treated_labels_typical.csv"
+)
+
+TEST_LABELS_SLOW = (
+    BASE_DIR / "treated_labels_slow.csv"
+)
+
+TEST_LABELS_FAST = (
+    BASE_DIR / "treated_labels_fast.csv"
+)
+
+
+# ============================================================
+# ARCHIVOS TEST DESIGNS
+# ============================================================
+
+TEST_DESIGNS_TYPICAL = (
+    BASE_DIR / "treated_test_designs_typical.csv"
+)
+
+TEST_DESIGNS_SLOW = (
+    BASE_DIR / "treated_test_designs_slow.csv"
+)
+
+TEST_DESIGNS_FAST = (
+    BASE_DIR / "treated_test_designs_fast.csv"
+)
+
+
+# ============================================================
+# FUNCIONES DE METRICAS
+# ============================================================
+
+def calcular_pearson(y_real, y_pred):
+
+    y_real = np.asarray(y_real)
+    y_pred = np.asarray(y_pred)
+
+    if len(y_real) < 2:
+        return np.nan
+
+    if np.std(y_real) == 0:
+        return np.nan
+
+    if np.std(y_pred) == 0:
+        return np.nan
+
+    return np.corrcoef(
+        y_real,
+        y_pred
+    )[0, 1]
+
 
 def calcular_metricas(y_real, y_pred):
-    mae = mean_absolute_error(y_real, y_pred)
 
-    rmse = np.sqrt(
-        mean_squared_error(y_real, y_pred)
+    mae = mean_absolute_error(
+        y_real,
+        y_pred
     )
 
-    r2 = r2_score(y_real, y_pred)
+    rmse = np.sqrt(
+        mean_squared_error(
+            y_real,
+            y_pred
+        )
+    )
 
-    return mae, rmse, r2
+    r2 = r2_score(
+        y_real,
+        y_pred
+    )
+
+    pearson = calcular_pearson(
+        y_real,
+        y_pred
+    )
+
+    return (
+        mae,
+        rmse,
+        r2,
+        pearson,
+    )
 
 
-def evaluar_modelo(nombre, y_real, y_pred, conjunto, esquina):
-    mae, rmse, r2 = calcular_metricas(y_real, y_pred)
+def crear_resultado(
+    modelo,
+    experimento,
+    conjunto,
+    esquina,
+    y_real,
+    y_pred,
+):
+
+    mae, rmse, r2, pearson = calcular_metricas(
+        y_real,
+        y_pred
+    )
 
     return {
-        "Modelo": nombre,
+        "Modelo": modelo,
+        "Experimento": experimento,
         "Conjunto": conjunto,
         "Esquina": esquina,
         "MAE": mae,
         "RMSE": rmse,
         "R2": r2,
+        "Pearson": pearson,
     }
 
 
@@ -74,121 +181,171 @@ archivos = [
     TRAIN_TYPICAL,
     TRAIN_SLOW,
     TRAIN_FAST,
-    TEST_TYPICAL,
-    TEST_SLOW,
-    TEST_FAST,
+
+    TEST_LABELS_TYPICAL,
+    TEST_LABELS_SLOW,
+    TEST_LABELS_FAST,
+
+    TEST_DESIGNS_TYPICAL,
+    TEST_DESIGNS_SLOW,
+    TEST_DESIGNS_FAST,
 ]
+
 
 print("=" * 70)
 print("VERIFICACION DE ARCHIVOS")
 print("=" * 70)
 
 for archivo in archivos:
+
     if not archivo.exists():
+
         raise FileNotFoundError(
             f"No se encontro el archivo:\n{archivo}"
         )
 
-    print(f"OK: {archivo.name}")
+    print(
+        f"OK: {archivo.name}"
+    )
 
 
 # ============================================================
-# CARGAR DATOS DE ENTRENAMIENTO
+# CARGAR TRAIN
 # ============================================================
 
 print("\n" + "=" * 70)
 print("CARGANDO DATOS DE ENTRENAMIENTO")
 print("=" * 70)
 
-train_typical = pd.read_csv(TRAIN_TYPICAL)
-train_slow = pd.read_csv(TRAIN_SLOW)
-train_fast = pd.read_csv(TRAIN_FAST)
+train_typical = pd.read_csv(
+    TRAIN_TYPICAL
+)
 
-print(f"Typical: {train_typical.shape}")
-print(f"Slow:    {train_slow.shape}")
-print(f"Fast:    {train_fast.shape}")
+train_slow = pd.read_csv(
+    TRAIN_SLOW
+)
+
+train_fast = pd.read_csv(
+    TRAIN_FAST
+)
+
+print(
+    f"Typical: {train_typical.shape}"
+)
+
+print(
+    f"Slow:    {train_slow.shape}"
+)
+
+print(
+    f"Fast:    {train_fast.shape}"
+)
 
 
 # ============================================================
-# VERIFICAR CORRESPONDENCIA
+# LLAVE DE CORRESPONDENCIA
 # ============================================================
-
-print("\n" + "=" * 70)
-print("VERIFICANDO CORRESPONDENCIA ENTRE ESQUINAS")
-print("=" * 70)
 
 columnas_llave = [
     "Previous_description",
     "Description",
 ]
 
-# verificar duplicados de la llave
-if train_typical.duplicated(columnas_llave).any():
-    raise ValueError(
-        "Hay segmentos duplicados en Typical."
-    )
 
-if train_slow.duplicated(columnas_llave).any():
-    raise ValueError(
-        "Hay segmentos duplicados en Slow."
-    )
+# ============================================================
+# VERIFICAR TRAIN
+# ============================================================
 
-if train_fast.duplicated(columnas_llave).any():
-    raise ValueError(
-        "Hay segmentos duplicados en Fast."
-    )
+print("\n" + "=" * 70)
+print("VERIFICANDO CORRESPONDENCIA ENTRE ESQUINAS")
+print("=" * 70)
 
-# crear las llaves
+
+for nombre, df in [
+    ("Typical", train_typical),
+    ("Slow", train_slow),
+    ("Fast", train_fast),
+]:
+
+    if df.duplicated(
+        columnas_llave
+    ).any():
+
+        raise ValueError(
+            f"Hay segmentos duplicados en {nombre}."
+        )
+
+
 llaves_typical = set(
     zip(
-        train_typical["Previous_description"],
-        train_typical["Description"],
+        train_typical[
+            "Previous_description"
+        ],
+        train_typical[
+            "Description"
+        ],
     )
 )
 
 llaves_slow = set(
     zip(
-        train_slow["Previous_description"],
-        train_slow["Description"],
+        train_slow[
+            "Previous_description"
+        ],
+        train_slow[
+            "Description"
+        ],
     )
 )
 
 llaves_fast = set(
     zip(
-        train_fast["Previous_description"],
-        train_fast["Description"],
+        train_fast[
+            "Previous_description"
+        ],
+        train_fast[
+            "Description"
+        ],
     )
 )
 
-# comprobar que las tres esquinas contienen los mismos segmentos
+
 if llaves_typical != llaves_slow:
+
     raise ValueError(
-        "Typical y Slow no contienen los mismos segmentos."
+        "Typical y Slow no contienen "
+        "los mismos segmentos."
     )
+
 
 if llaves_typical != llaves_fast:
+
     raise ValueError(
-        "Typical y Fast no contienen los mismos segmentos."
+        "Typical y Fast no contienen "
+        "los mismos segmentos."
     )
 
+
 print(
-    "Los tres archivos contienen los mismos segmentos."
+    "Los tres archivos contienen "
+    "los mismos segmentos."
 )
 
 print(
-    f"Segmentos correspondientes: {len(llaves_typical)}"
+    f"Segmentos correspondientes: "
+    f"{len(llaves_typical):,}"
 )
 
 
 # ============================================================
-# CREAR TABLA DE ENTRENAMIENTO
+# CREAR DATASET MULTICORNER
 # ============================================================
 
 print("\n" + "=" * 70)
-print("CREANDO DATASET MULTICORNER PARA MACHINE LEARNING")
+print("CREANDO DATASET MULTICORNER")
 print("=" * 70)
 
-# seleccionar solamente la llave y el Delay de Slow
+
 slow_delay = train_slow[
     columnas_llave + ["Delay"]
 ].rename(
@@ -197,7 +354,7 @@ slow_delay = train_slow[
     }
 )
 
-# seleccionar solamente la llave y el Delay de Fast
+
 fast_delay = train_fast[
     columnas_llave + ["Delay"]
 ].rename(
@@ -206,14 +363,14 @@ fast_delay = train_fast[
     }
 )
 
-# Typical es la base de las variables de entrada
+
 datos_train = train_typical.rename(
     columns={
         "Delay": "Delay_Typical"
     }
 ).copy()
 
-# unir Slow utilizando la llave correcta
+
 datos_train = datos_train.merge(
     slow_delay,
     on=columnas_llave,
@@ -221,7 +378,7 @@ datos_train = datos_train.merge(
     validate="one_to_one",
 )
 
-# unir Fast utilizando la llave correcta
+
 datos_train = datos_train.merge(
     fast_delay,
     on=columnas_llave,
@@ -229,17 +386,9 @@ datos_train = datos_train.merge(
     validate="one_to_one",
 )
 
-print(
-    f"Dataset final de entrenamiento: {datos_train.shape}"
-)
-
-if len(datos_train) != len(train_typical):
-    raise ValueError(
-        "Se perdieron filas al unir Typical, Slow y Fast."
-    )
 
 print(
-    "La union Typical-Slow-Fast fue correcta."
+    f"Dataset final: {datos_train.shape}"
 )
 
 
@@ -256,43 +405,68 @@ columnas_excluir = [
     "Delay_Fast",
 ]
 
+
 columnas_features = [
     columna
     for columna in datos_train.columns
     if columna not in columnas_excluir
 ]
 
+
 print("\nVariables utilizadas por el modelo:")
 
 for columna in columnas_features:
-    print(f"  - {columna}")
+
+    print(
+        f"  - {columna}"
+    )
+
+
+print(
+    f"\nCantidad de variables: "
+    f"{len(columnas_features)}"
+)
 
 
 # ============================================================
-# MATRIZ X Y OBJETIVOS
+# X Y
 # ============================================================
 
-X = datos_train[columnas_features].copy()
+X = datos_train[
+    columnas_features
+].copy()
 
-y_slow = datos_train["Delay_Slow"].copy()
-y_fast = datos_train["Delay_Fast"].copy()
+
+X = X.apply(
+    pd.to_numeric,
+    errors="coerce"
+)
 
 
-# ============================================================
-# ASEGURAR QUE LAS VARIABLES SEAN NUMERICAS
-# ============================================================
+y_slow = datos_train[
+    "Delay_Slow"
+].copy()
 
-X = X.apply(pd.to_numeric, errors="coerce")
 
-print("\nCantidad de variables de entrada:", X.shape[1])
-print("Cantidad de observaciones:", X.shape[0])
+y_fast = datos_train[
+    "Delay_Fast"
+].copy()
+
+
+print(
+    f"Cantidad de observaciones: "
+    f"{len(X):,}"
+)
 
 
 # ============================================================
 # DIVISION TRAIN / VALIDACION
 # ============================================================
 
-indices = np.arange(len(X))
+indices = np.arange(
+    len(X)
+)
+
 
 indices_train, indices_validacion = train_test_split(
     indices,
@@ -300,22 +474,52 @@ indices_train, indices_validacion = train_test_split(
     random_state=42,
 )
 
-X_train = X.iloc[indices_train]
-X_validacion = X.iloc[indices_validacion]
 
-y_slow_train = y_slow.iloc[indices_train]
-y_slow_validacion = y_slow.iloc[indices_validacion]
+X_train = X.iloc[
+    indices_train
+]
 
-y_fast_train = y_fast.iloc[indices_train]
-y_fast_validacion = y_fast.iloc[indices_validacion]
+X_validacion = X.iloc[
+    indices_validacion
+]
+
+
+y_slow_train = y_slow.iloc[
+    indices_train
+]
+
+y_slow_validacion = y_slow.iloc[
+    indices_validacion
+]
+
+
+y_fast_train = y_fast.iloc[
+    indices_train
+]
+
+y_fast_validacion = y_fast.iloc[
+    indices_validacion
+]
 
 
 print("\n" + "=" * 70)
 print("DIVISION DE DATOS")
 print("=" * 70)
 
-print(f"Entrenamiento: {len(X_train)}")
-print(f"Validacion:    {len(X_validacion)}")
+print(
+    f"Entrenamiento: {len(X_train):,}"
+)
+
+print(
+    f"Validacion:    {len(X_validacion):,}"
+)
+
+
+# ============================================================
+# RESULTADOS
+# ============================================================
+
+resultados = []
 
 
 # ============================================================
@@ -326,217 +530,545 @@ print("\n" + "=" * 70)
 print("BASELINE")
 print("=" * 70)
 
-baseline_slow = datos_train.iloc[
-    indices_validacion
-]["Delay_Typical"].values
+print(
+    "Baseline: usar Delay_Typical "
+    "como prediccion de Slow y Fast."
+)
 
-baseline_fast = datos_train.iloc[
-    indices_validacion
-]["Delay_Typical"].values
 
-resultados = []
+# ------------------------------------------------------------
+# TRAIN
+# ------------------------------------------------------------
+
+baseline_train = datos_train[
+    "Delay_Typical"
+].iloc[
+    indices_train
+].values
+
 
 resultados.append(
-    evaluar_modelo(
+    crear_resultado(
         "Baseline",
-        y_slow_validacion,
-        baseline_slow,
-        "Validacion",
+        "Typical como prediccion",
+        "Train",
         "Slow",
+        y_slow_train,
+        baseline_train,
     )
 )
 
+
 resultados.append(
-    evaluar_modelo(
+    crear_resultado(
         "Baseline",
-        y_fast_validacion,
-        baseline_fast,
-        "Validacion",
+        "Typical como prediccion",
+        "Train",
         "Fast",
+        y_fast_train,
+        baseline_train,
     )
 )
 
 
-# ============================================================
-# MODELO RIDGE - SLOW
-# ============================================================
+# ------------------------------------------------------------
+# VALIDACION
+# ------------------------------------------------------------
 
-print("\n" + "=" * 70)
-print("ENTRENANDO RIDGE PARA SLOW")
-print("=" * 70)
+baseline_validacion = datos_train[
+    "Delay_Typical"
+].iloc[
+    indices_validacion
+].values
 
-modelo_ridge_slow = Pipeline(
-    steps=[
-        (
-            "imputer",
-            SimpleImputer(strategy="median"),
-        ),
-        (
-            "scaler",
-            StandardScaler(),
-        ),
-        (
-            "modelo",
-            Ridge(alpha=1.0),
-        ),
-    ]
-)
-
-modelo_ridge_slow.fit(
-    X_train,
-    y_slow_train,
-)
-
-pred_ridge_slow = modelo_ridge_slow.predict(
-    X_validacion
-)
 
 resultados.append(
-    evaluar_modelo(
-        "Ridge",
-        y_slow_validacion,
-        pred_ridge_slow,
+    crear_resultado(
+        "Baseline",
+        "Typical como prediccion",
         "Validacion",
         "Slow",
+        y_slow_validacion,
+        baseline_validacion,
     )
 )
 
 
-# ============================================================
-# MODELO RIDGE - FAST
-# ============================================================
-
-print("\n" + "=" * 70)
-print("ENTRENANDO RIDGE PARA FAST")
-print("=" * 70)
-
-modelo_ridge_fast = Pipeline(
-    steps=[
-        (
-            "imputer",
-            SimpleImputer(strategy="median"),
-        ),
-        (
-            "scaler",
-            StandardScaler(),
-        ),
-        (
-            "modelo",
-            Ridge(alpha=1.0),
-        ),
-    ]
-)
-
-modelo_ridge_fast.fit(
-    X_train,
-    y_fast_train,
-)
-
-pred_ridge_fast = modelo_ridge_fast.predict(
-    X_validacion
-)
-
 resultados.append(
-    evaluar_modelo(
-        "Ridge",
-        y_fast_validacion,
-        pred_ridge_fast,
+    crear_resultado(
+        "Baseline",
+        "Typical como prediccion",
         "Validacion",
         "Fast",
+        y_fast_validacion,
+        baseline_validacion,
     )
 )
 
 
 # ============================================================
-# RANDOM FOREST - SLOW
+# RIDGE
 # ============================================================
 
 print("\n" + "=" * 70)
-print("ENTRENANDO RANDOM FOREST PARA SLOW")
+print("RIDGE")
 print("=" * 70)
 
-modelo_rf_slow = Pipeline(
-    steps=[
-        (
-            "imputer",
-            SimpleImputer(strategy="median"),
-        ),
-        (
-            "modelo",
-            RandomForestRegressor(
-                n_estimators=100,
-                max_depth=20,
-                min_samples_leaf=2,
-                random_state=42,
-                n_jobs=-1,
+
+def crear_ridge():
+
+    return Pipeline(
+        steps=[
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                ),
             ),
-        ),
-    ]
-)
 
-modelo_rf_slow.fit(
+            (
+                "scaler",
+                StandardScaler(),
+            ),
+
+            (
+                "modelo",
+                Ridge(
+                    alpha=1.0
+                ),
+            ),
+        ]
+    )
+
+
+ridge_slow = crear_ridge()
+
+ridge_fast = crear_ridge()
+
+
+ridge_slow.fit(
     X_train,
-    y_slow_train,
+    y_slow_train
 )
 
-pred_rf_slow = modelo_rf_slow.predict(
+
+ridge_fast.fit(
+    X_train,
+    y_fast_train
+)
+
+
+# ------------------------------------------------------------
+# PREDICCIONES TRAIN
+# ------------------------------------------------------------
+
+pred_ridge_slow_train = ridge_slow.predict(
+    X_train
+)
+
+pred_ridge_fast_train = ridge_fast.predict(
+    X_train
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Ridge",
+        "alpha=1.0",
+        "Train",
+        "Slow",
+        y_slow_train,
+        pred_ridge_slow_train,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Ridge",
+        "alpha=1.0",
+        "Train",
+        "Fast",
+        y_fast_train,
+        pred_ridge_fast_train,
+    )
+)
+
+
+# ------------------------------------------------------------
+# PREDICCIONES VALIDACION
+# ------------------------------------------------------------
+
+pred_ridge_slow_validacion = ridge_slow.predict(
     X_validacion
 )
 
+pred_ridge_fast_validacion = ridge_fast.predict(
+    X_validacion
+)
+
+
 resultados.append(
-    evaluar_modelo(
-        "Random Forest",
-        y_slow_validacion,
-        pred_rf_slow,
+    crear_resultado(
+        "Ridge",
+        "alpha=1.0",
         "Validacion",
         "Slow",
+        y_slow_validacion,
+        pred_ridge_slow_validacion,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Ridge",
+        "alpha=1.0",
+        "Validacion",
+        "Fast",
+        y_fast_validacion,
+        pred_ridge_fast_validacion,
     )
 )
 
 
 # ============================================================
-# RANDOM FOREST - FAST
+# EXPERIMENTOS RANDOM FOREST
 # ============================================================
 
 print("\n" + "=" * 70)
-print("ENTRENANDO RANDOM FOREST PARA FAST")
+print("EXPERIMENTOS RANDOM FOREST")
 print("=" * 70)
 
-modelo_rf_fast = Pipeline(
-    steps=[
-        (
-            "imputer",
-            SimpleImputer(strategy="median"),
-        ),
-        (
-            "modelo",
-            RandomForestRegressor(
-                n_estimators=100,
-                max_depth=20,
-                min_samples_leaf=2,
-                random_state=42,
-                n_jobs=-1,
+
+configuraciones_rf = [
+    {
+        "n_estimators": 10,
+        "max_depth": 20,
+        "min_samples_leaf": 2,
+    },
+
+    {
+        "n_estimators": 50,
+        "max_depth": 20,
+        "min_samples_leaf": 2,
+    },
+
+    {
+        "n_estimators": 100,
+        "max_depth": 20,
+        "min_samples_leaf": 2,
+    },
+
+    {
+        "n_estimators": 200,
+        "max_depth": 20,
+        "min_samples_leaf": 2,
+    },
+]
+
+
+resultados_rf_validacion = []
+
+
+for configuracion in configuraciones_rf:
+
+    nombre_experimento = (
+        f"trees={configuracion['n_estimators']}"
+        f"_depth={configuracion['max_depth']}"
+        f"_leaf={configuracion['min_samples_leaf']}"
+    )
+
+
+    print("\n" + "-" * 70)
+
+    print(
+        f"Random Forest: "
+        f"{nombre_experimento}"
+    )
+
+
+    # --------------------------------------------------------
+    # SLOW
+    # --------------------------------------------------------
+
+    modelo_slow = Pipeline(
+        steps=[
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                ),
             ),
-        ),
-    ]
-)
 
-modelo_rf_fast.fit(
+            (
+                "modelo",
+                RandomForestRegressor(
+                    n_estimators=configuracion[
+                        "n_estimators"
+                    ],
+
+                    max_depth=configuracion[
+                        "max_depth"
+                    ],
+
+                    min_samples_leaf=configuracion[
+                        "min_samples_leaf"
+                    ],
+
+                    random_state=42,
+
+                    n_jobs=-1,
+                ),
+            ),
+        ]
+    )
+
+
+    modelo_slow.fit(
+        X_train,
+        y_slow_train
+    )
+
+
+    pred_slow_train = modelo_slow.predict(
+        X_train
+    )
+
+
+    pred_slow_validacion = modelo_slow.predict(
+        X_validacion
+    )
+
+
+    resultados.append(
+        crear_resultado(
+            "Random Forest",
+            nombre_experimento,
+            "Train",
+            "Slow",
+            y_slow_train,
+            pred_slow_train,
+        )
+    )
+
+
+    resultado_validacion_slow = crear_resultado(
+        "Random Forest",
+        nombre_experimento,
+        "Validacion",
+        "Slow",
+        y_slow_validacion,
+        pred_slow_validacion,
+    )
+
+
+    resultados.append(
+        resultado_validacion_slow
+    )
+
+
+    resultados_rf_validacion.append(
+        resultado_validacion_slow
+    )
+
+
+    # --------------------------------------------------------
+    # FAST
+    # --------------------------------------------------------
+
+    modelo_fast = Pipeline(
+        steps=[
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                ),
+            ),
+
+            (
+                "modelo",
+                RandomForestRegressor(
+                    n_estimators=configuracion[
+                        "n_estimators"
+                    ],
+
+                    max_depth=configuracion[
+                        "max_depth"
+                    ],
+
+                    min_samples_leaf=configuracion[
+                        "min_samples_leaf"
+                    ],
+
+                    random_state=42,
+
+                    n_jobs=-1,
+                ),
+            ),
+        ]
+    )
+
+
+    modelo_fast.fit(
+        X_train,
+        y_fast_train
+    )
+
+
+    pred_fast_train = modelo_fast.predict(
+        X_train
+    )
+
+
+    pred_fast_validacion = modelo_fast.predict(
+        X_validacion
+    )
+
+
+    resultados.append(
+        crear_resultado(
+            "Random Forest",
+            nombre_experimento,
+            "Train",
+            "Fast",
+            y_fast_train,
+            pred_fast_train,
+        )
+    )
+
+
+    resultado_validacion_fast = crear_resultado(
+        "Random Forest",
+        nombre_experimento,
+        "Validacion",
+        "Fast",
+        y_fast_validacion,
+        pred_fast_validacion,
+    )
+
+
+    resultados.append(
+        resultado_validacion_fast
+    )
+
+
+    resultados_rf_validacion.append(
+        resultado_validacion_fast
+    )
+
+
+# ============================================================
+# GRADIENT BOOSTING
+# ============================================================
+
+print("\n" + "=" * 70)
+print("GRADIENT BOOSTING")
+print("=" * 70)
+
+
+def crear_gradient_boosting():
+
+    return Pipeline(
+        steps=[
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                ),
+            ),
+
+            (
+                "modelo",
+                GradientBoostingRegressor(
+                    n_estimators=100,
+                    learning_rate=0.05,
+                    max_depth=3,
+                    random_state=42,
+                ),
+            ),
+        ]
+    )
+
+
+gb_slow = crear_gradient_boosting()
+
+gb_fast = crear_gradient_boosting()
+
+
+gb_slow.fit(
     X_train,
-    y_fast_train,
+    y_slow_train
 )
 
-pred_rf_fast = modelo_rf_fast.predict(
+gb_fast.fit(
+    X_train,
+    y_fast_train
+)
+
+
+pred_gb_slow_train = gb_slow.predict(
+    X_train
+)
+
+pred_gb_fast_train = gb_fast.predict(
+    X_train
+)
+
+
+pred_gb_slow_validacion = gb_slow.predict(
     X_validacion
 )
 
+pred_gb_fast_validacion = gb_fast.predict(
+    X_validacion
+)
+
+
 resultados.append(
-    evaluar_modelo(
-        "Random Forest",
-        y_fast_validacion,
-        pred_rf_fast,
+    crear_resultado(
+        "Gradient Boosting",
+        "trees=100_learning_rate=0.05_depth=3",
+        "Train",
+        "Slow",
+        y_slow_train,
+        pred_gb_slow_train,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Gradient Boosting",
+        "trees=100_learning_rate=0.05_depth=3",
+        "Train",
+        "Fast",
+        y_fast_train,
+        pred_gb_fast_train,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Gradient Boosting",
+        "trees=100_learning_rate=0.05_depth=3",
+        "Validacion",
+        "Slow",
+        y_slow_validacion,
+        pred_gb_slow_validacion,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Gradient Boosting",
+        "trees=100_learning_rate=0.05_depth=3",
         "Validacion",
         "Fast",
+        y_fast_validacion,
+        pred_gb_fast_validacion,
     )
 )
 
@@ -545,17 +1077,209 @@ resultados.append(
 # RESULTADOS DE VALIDACION
 # ============================================================
 
-resultados_df = pd.DataFrame(resultados)
+resultados_df = pd.DataFrame(
+    resultados
+)
+
 
 print("\n" + "=" * 70)
 print("RESULTADOS DE VALIDACION")
 print("=" * 70)
 
+
 print(
-    resultados_df.to_string(
+    resultados_df[
+        resultados_df["Conjunto"]
+        == "Validacion"
+    ].sort_values(
+        "RMSE"
+    ).to_string(
         index=False,
         float_format=lambda x: f"{x:.6f}",
     )
+)
+
+
+# ============================================================
+# SELECCIONAR MEJOR RANDOM FOREST
+# ============================================================
+
+rf_validacion_df = resultados_df[
+    (resultados_df["Modelo"] == "Random Forest")
+    &
+    (resultados_df["Conjunto"] == "Validacion")
+].copy()
+
+
+mejor_rf_slow = rf_validacion_df[
+    rf_validacion_df["Esquina"] == "Slow"
+].sort_values(
+    "RMSE"
+).iloc[0]
+
+
+mejor_rf_fast = rf_validacion_df[
+    rf_validacion_df["Esquina"] == "Fast"
+].sort_values(
+    "RMSE"
+).iloc[0]
+
+
+print("\n" + "=" * 70)
+print("MEJORES CONFIGURACIONES RANDOM FOREST")
+print("=" * 70)
+
+
+print(
+    "\nSlow:"
+)
+
+print(
+    mejor_rf_slow[
+        [
+            "Experimento",
+            "RMSE",
+            "R2",
+            "Pearson",
+        ]
+    ].to_string()
+)
+
+
+print(
+    "\nFast:"
+)
+
+print(
+    mejor_rf_fast[
+        [
+            "Experimento",
+            "RMSE",
+            "R2",
+            "Pearson",
+        ]
+    ].to_string()
+)
+
+
+# ============================================================
+# CARGAR TEST LABELS
+# ============================================================
+
+print("\n" + "=" * 70)
+print("CARGANDO TEST LABELS")
+print("=" * 70)
+
+
+test_labels_typical = pd.read_csv(
+    TEST_LABELS_TYPICAL
+)
+
+test_labels_slow = pd.read_csv(
+    TEST_LABELS_SLOW
+)
+
+test_labels_fast = pd.read_csv(
+    TEST_LABELS_FAST
+)
+
+
+print(
+    f"Typical: {test_labels_typical.shape}"
+)
+
+print(
+    f"Slow:    {test_labels_slow.shape}"
+)
+
+print(
+    f"Fast:    {test_labels_fast.shape}"
+)
+
+
+# ============================================================
+# FUNCION PARA CONSTRUIR TEST MULTICORNER
+# ============================================================
+
+def construir_test_multicorner(
+    typical,
+    slow,
+    fast,
+):
+
+    for nombre, df in [
+        ("Typical", typical),
+        ("Slow", slow),
+        ("Fast", fast),
+    ]:
+
+        if df.duplicated(
+            columnas_llave
+        ).any():
+
+            raise ValueError(
+                f"Hay duplicados en test {nombre}."
+            )
+
+
+    slow_delay = slow[
+        columnas_llave + ["Delay"]
+    ].rename(
+        columns={
+            "Delay": "Delay_Slow"
+        }
+    )
+
+
+    fast_delay = fast[
+        columnas_llave + ["Delay"]
+    ].rename(
+        columns={
+            "Delay": "Delay_Fast"
+        }
+    )
+
+
+    resultado = typical.rename(
+        columns={
+            "Delay": "Delay_Typical"
+        }
+    ).copy()
+
+
+    resultado = resultado.merge(
+        slow_delay,
+        on=columnas_llave,
+        how="inner",
+        validate="one_to_one",
+    )
+
+
+    resultado = resultado.merge(
+        fast_delay,
+        on=columnas_llave,
+        how="inner",
+        validate="one_to_one",
+    )
+
+
+    return resultado
+
+
+# ============================================================
+# CONSTRUIR TEST LABELS
+# ============================================================
+
+test_labels = construir_test_multicorner(
+    test_labels_typical,
+    test_labels_slow,
+    test_labels_fast,
+)
+
+
+print(
+    f"\nTest Labels final: "
+    f"{test_labels.shape}"
 )
 
 
@@ -567,280 +1291,594 @@ print("\n" + "=" * 70)
 print("CARGANDO TEST DESIGNS")
 print("=" * 70)
 
-test_typical = pd.read_csv(TEST_TYPICAL)
-test_slow = pd.read_csv(TEST_SLOW)
-test_fast = pd.read_csv(TEST_FAST)
 
-print(f"Typical: {test_typical.shape}")
-print(f"Slow:    {test_slow.shape}")
-print(f"Fast:    {test_fast.shape}")
-
-
-# ============================================================
-# VERIFICAR CORRESPONDENCIA DE TEST DESIGNS
-# ============================================================
-
-print("\n" + "=" * 70)
-print("VERIFICANDO CORRESPONDENCIA DE TEST DESIGNS")
-print("=" * 70)
-
-# verificar duplicados
-if test_typical.duplicated(columnas_llave).any():
-    raise ValueError(
-        "Hay segmentos duplicados en test Typical."
-    )
-
-if test_slow.duplicated(columnas_llave).any():
-    raise ValueError(
-        "Hay segmentos duplicados en test Slow."
-    )
-
-if test_fast.duplicated(columnas_llave).any():
-    raise ValueError(
-        "Hay segmentos duplicados en test Fast."
-    )
-
-# crear las llaves
-llaves_test_typical = set(
-    zip(
-        test_typical["Previous_description"],
-        test_typical["Description"],
-    )
+test_designs_typical = pd.read_csv(
+    TEST_DESIGNS_TYPICAL
 )
 
-llaves_test_slow = set(
-    zip(
-        test_slow["Previous_description"],
-        test_slow["Description"],
-    )
+test_designs_slow = pd.read_csv(
+    TEST_DESIGNS_SLOW
 )
 
-llaves_test_fast = set(
-    zip(
-        test_fast["Previous_description"],
-        test_fast["Description"],
-    )
+test_designs_fast = pd.read_csv(
+    TEST_DESIGNS_FAST
 )
 
-if llaves_test_typical != llaves_test_slow:
-    raise ValueError(
-        "Test Typical y Slow no contienen los mismos segmentos."
-    )
-
-if llaves_test_typical != llaves_test_fast:
-    raise ValueError(
-        "Test Typical y Fast no contienen los mismos segmentos."
-    )
 
 print(
-    "Los tres test designs contienen los mismos segmentos."
+    f"Typical: {test_designs_typical.shape}"
 )
 
 print(
-    f"Segmentos correspondientes: {len(llaves_test_typical)}"
-)
-
-
-# ============================================================
-# CREAR DATASET MULTICORNER DE TEST
-# ============================================================
-
-test_slow_delay = test_slow[
-    columnas_llave + ["Delay"]
-].rename(
-    columns={
-        "Delay": "Delay_Slow"
-    }
-)
-
-test_fast_delay = test_fast[
-    columnas_llave + ["Delay"]
-].rename(
-    columns={
-        "Delay": "Delay_Fast"
-    }
-)
-
-test_datos = test_typical.rename(
-    columns={
-        "Delay": "Delay_Typical"
-    }
-).copy()
-
-# unir Slow
-test_datos = test_datos.merge(
-    test_slow_delay,
-    on=columnas_llave,
-    how="inner",
-    validate="one_to_one",
-)
-
-# unir Fast
-test_datos = test_datos.merge(
-    test_fast_delay,
-    on=columnas_llave,
-    how="inner",
-    validate="one_to_one",
+    f"Slow:    {test_designs_slow.shape}"
 )
 
 print(
-    f"Dataset final de test: {test_datos.shape}"
+    f"Fast:    {test_designs_fast.shape}"
 )
 
-if len(test_datos) != len(test_typical):
-    raise ValueError(
-        "Se perdieron filas al unir los test designs."
-    )
+
+# ============================================================
+# CONSTRUIR TEST DESIGNS
+# ============================================================
+
+test_designs = construir_test_multicorner(
+    test_designs_typical,
+    test_designs_slow,
+    test_designs_fast,
+)
+
 
 print(
-    "La union de los test designs fue correcta."
+    f"\nTest Designs final: "
+    f"{test_designs.shape}"
 )
 
 
 # ============================================================
-# PREPARAR VARIABLES DE TEST
+# PREPARAR TEST LABELS
 # ============================================================
 
-X_test = test_datos[columnas_features].copy()
+X_test_labels = test_labels[
+    columnas_features
+].copy()
 
-X_test = X_test.apply(
+
+X_test_labels = X_test_labels.apply(
     pd.to_numeric,
-    errors="coerce",
+    errors="coerce"
 )
 
-y_test_slow = test_datos["Delay_Slow"]
 
-y_test_fast = test_datos["Delay_Fast"]
+y_test_labels_slow = test_labels[
+    "Delay_Slow"
+]
+
+y_test_labels_fast = test_labels[
+    "Delay_Fast"
+]
+
 
 # ============================================================
-# ENTRENAR MODELOS FINALES CON TODO EL TRAIN
+# PREPARAR TEST DESIGNS
+# ============================================================
+
+X_test_designs = test_designs[
+    columnas_features
+].copy()
+
+
+X_test_designs = X_test_designs.apply(
+    pd.to_numeric,
+    errors="coerce"
+)
+
+
+y_test_designs_slow = test_designs[
+    "Delay_Slow"
+]
+
+y_test_designs_fast = test_designs[
+    "Delay_Fast"
+]
+
+
+# ============================================================
+# BASELINE TEST LABELS Y TEST DESIGNS
 # ============================================================
 
 print("\n" + "=" * 70)
-print("ENTRENANDO MODELOS FINALES CON TODO EL DATASET")
+print("BASELINE EN TEST LABELS Y TEST DESIGNS")
 print("=" * 70)
+
+
+# ------------------------------------------------------------
+# TEST LABELS
+# ------------------------------------------------------------
+
+baseline_labels = test_labels[
+    "Delay_Typical"
+].values
+
+
+resultados.append(
+    crear_resultado(
+        "Baseline",
+        "Typical como prediccion",
+        "Test Labels",
+        "Slow",
+        y_test_labels_slow,
+        baseline_labels,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Baseline",
+        "Typical como prediccion",
+        "Test Labels",
+        "Fast",
+        y_test_labels_fast,
+        baseline_labels,
+    )
+)
+
+
+# ------------------------------------------------------------
+# TEST DESIGNS
+# ------------------------------------------------------------
+
+baseline_designs = test_designs[
+    "Delay_Typical"
+].values
+
+
+resultados.append(
+    crear_resultado(
+        "Baseline",
+        "Typical como prediccion",
+        "Test Designs",
+        "Slow",
+        y_test_designs_slow,
+        baseline_designs,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Baseline",
+        "Typical como prediccion",
+        "Test Designs",
+        "Fast",
+        y_test_designs_fast,
+        baseline_designs,
+    )
+)
+
+
+# ============================================================
+# ENTRENAR RIDGE FINAL
+# ============================================================
+
+print("\n" + "=" * 70)
+print("RIDGE FINAL")
+print("=" * 70)
+
+
+ridge_final_slow = crear_ridge()
+
+ridge_final_fast = crear_ridge()
+
+
+ridge_final_slow.fit(
+    X,
+    y_slow
+)
+
+ridge_final_fast.fit(
+    X,
+    y_fast
+)
+
+
+# ============================================================
+# RIDGE TEST LABELS
+# ============================================================
+
+pred_ridge_labels_slow = ridge_final_slow.predict(
+    X_test_labels
+)
+
+pred_ridge_labels_fast = ridge_final_fast.predict(
+    X_test_labels
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Ridge",
+        "alpha=1.0",
+        "Test Labels",
+        "Slow",
+        y_test_labels_slow,
+        pred_ridge_labels_slow,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Ridge",
+        "alpha=1.0",
+        "Test Labels",
+        "Fast",
+        y_test_labels_fast,
+        pred_ridge_labels_fast,
+    )
+)
+
+
+# ============================================================
+# RIDGE TEST DESIGNS
+# ============================================================
+
+pred_ridge_designs_slow = ridge_final_slow.predict(
+    X_test_designs
+)
+
+pred_ridge_designs_fast = ridge_final_fast.predict(
+    X_test_designs
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Ridge",
+        "alpha=1.0",
+        "Test Designs",
+        "Slow",
+        y_test_designs_slow,
+        pred_ridge_designs_slow,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Ridge",
+        "alpha=1.0",
+        "Test Designs",
+        "Fast",
+        y_test_designs_fast,
+        pred_ridge_designs_fast,
+    )
+)
+
+
+# ============================================================
+# OBTENER PARAMETROS DEL MEJOR RF
+# ============================================================
+
+def obtener_parametros_rf(texto):
+
+    partes = texto.split("_")
+
+    parametros = {}
+
+    for parte in partes:
+
+        if "=" in parte:
+
+            clave, valor = parte.split("=")
+
+            parametros[clave] = int(valor)
+
+    return parametros
+
+
+param_slow = obtener_parametros_rf(
+    mejor_rf_slow["Experimento"]
+)
+
+
+param_fast = obtener_parametros_rf(
+    mejor_rf_fast["Experimento"]
+)
+
+
+# ============================================================
+# ENTRENAR RF FINAL SLOW
+# ============================================================
+
+print("\n" + "=" * 70)
+print("RANDOM FOREST FINAL")
+print("=" * 70)
+
+
+print(
+    "\nConfiguracion Slow:"
+)
+
+print(
+    param_slow
+)
+
+
+print(
+    "\nConfiguracion Fast:"
+)
+
+print(
+    param_fast
+)
+
 
 modelo_final_slow = Pipeline(
     steps=[
         (
             "imputer",
-            SimpleImputer(strategy="median"),
+            SimpleImputer(
+                strategy="median"
+            ),
         ),
+
         (
             "modelo",
             RandomForestRegressor(
-                n_estimators=100,
-                max_depth=20,
-                min_samples_leaf=2,
+                n_estimators=param_slow[
+                    "trees"
+                ],
+
+                max_depth=param_slow[
+                    "depth"
+                ],
+
+                min_samples_leaf=param_slow[
+                    "leaf"
+                ],
+
                 random_state=42,
+
                 n_jobs=-1,
             ),
         ),
     ]
 )
+
 
 modelo_final_fast = Pipeline(
     steps=[
         (
             "imputer",
-            SimpleImputer(strategy="median"),
+            SimpleImputer(
+                strategy="median"
+            ),
         ),
+
         (
             "modelo",
             RandomForestRegressor(
-                n_estimators=100,
-                max_depth=20,
-                min_samples_leaf=2,
+                n_estimators=param_fast[
+                    "trees"
+                ],
+
+                max_depth=param_fast[
+                    "depth"
+                ],
+
+                min_samples_leaf=param_fast[
+                    "leaf"
+                ],
+
                 random_state=42,
+
                 n_jobs=-1,
             ),
         ),
     ]
 )
 
+
+# Entrenar con TODO el train
+
 modelo_final_slow.fit(
     X,
-    y_slow,
+    y_slow
 )
+
 
 modelo_final_fast.fit(
     X,
-    y_fast,
+    y_fast
 )
 
 
 # ============================================================
-# PREDICCIONES SOBRE TEST DESIGNS
+# RF TEST LABELS
 # ============================================================
 
-print("\n" + "=" * 70)
-print("EVALUANDO EN TEST DESIGNS")
-print("=" * 70)
-
-pred_test_slow = modelo_final_slow.predict(X_test)
-pred_test_fast = modelo_final_fast.predict(X_test)
-
-
-# ============================================================
-# METRICAS TEST
-# ============================================================
-
-resultado_test_slow = evaluar_modelo(
-    "Random Forest",
-    y_test_slow,
-    pred_test_slow,
-    "Test Designs",
-    "Slow",
+pred_rf_labels_slow = modelo_final_slow.predict(
+    X_test_labels
 )
 
-resultado_test_fast = evaluar_modelo(
-    "Random Forest",
-    y_test_fast,
-    pred_test_fast,
-    "Test Designs",
-    "Fast",
+pred_rf_labels_fast = modelo_final_fast.predict(
+    X_test_labels
 )
 
-resultados_test = pd.DataFrame(
-    [
-        resultado_test_slow,
-        resultado_test_fast,
-    ]
+
+resultados.append(
+    crear_resultado(
+        "Random Forest",
+        mejor_rf_slow["Experimento"],
+        "Test Labels",
+        "Slow",
+        y_test_labels_slow,
+        pred_rf_labels_slow,
+    )
 )
 
-print(
-    resultados_test.to_string(
-        index=False,
-        float_format=lambda x: f"{x:.6f}",
+
+resultados.append(
+    crear_resultado(
+        "Random Forest",
+        mejor_rf_fast["Experimento"],
+        "Test Labels",
+        "Fast",
+        y_test_labels_fast,
+        pred_rf_labels_fast,
     )
 )
 
 
 # ============================================================
-# GUARDAR RESULTADOS
+# RF TEST DESIGNS
 # ============================================================
 
-resultados_completos = pd.concat(
+pred_rf_designs_slow = modelo_final_slow.predict(
+    X_test_designs
+)
+
+pred_rf_designs_fast = modelo_final_fast.predict(
+    X_test_designs
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Random Forest",
+        mejor_rf_slow["Experimento"],
+        "Test Designs",
+        "Slow",
+        y_test_designs_slow,
+        pred_rf_designs_slow,
+    )
+)
+
+
+resultados.append(
+    crear_resultado(
+        "Random Forest",
+        mejor_rf_fast["Experimento"],
+        "Test Designs",
+        "Fast",
+        y_test_designs_fast,
+        pred_rf_designs_fast,
+    )
+)
+
+
+# ============================================================
+# GUARDAR TODAS LAS METRICAS
+# ============================================================
+
+resultados_df = pd.DataFrame(
+    resultados
+)
+
+
+ruta_metricas = (
+    RESULTS_DIR
+    / "metricas_objetivo3.csv"
+)
+
+
+resultados_df.to_csv(
+    ruta_metricas,
+    index=False
+)
+
+
+# ============================================================
+# TABLA DE EXPERIMENTOS RF
+# ============================================================
+
+tabla_experimentos = resultados_df[
+    (
+        resultados_df["Modelo"]
+        == "Random Forest"
+    )
+    &
+    (
+        resultados_df["Conjunto"]
+        == "Validacion"
+    )
+].copy()
+
+
+ruta_experimentos = (
+    RESULTS_DIR
+    / "experimentos_random_forest.csv"
+)
+
+
+tabla_experimentos.to_csv(
+    ruta_experimentos,
+    index=False
+)
+
+
+# ============================================================
+# GUARDAR PREDICCIONES TEST LABELS
+# ============================================================
+
+predicciones_labels = test_labels[
     [
-        resultados_df,
-        resultados_test,
-    ],
-    ignore_index=True,
+        "Delay_Typical",
+        "Delay_Slow",
+        "Delay_Fast",
+    ]
+].copy()
+
+
+predicciones_labels[
+    "Baseline_Slow"
+] = baseline_labels
+
+
+predicciones_labels[
+    "Baseline_Fast"
+] = baseline_labels
+
+
+predicciones_labels[
+    "Ridge_Slow"
+] = pred_ridge_labels_slow
+
+
+predicciones_labels[
+    "Ridge_Fast"
+] = pred_ridge_labels_fast
+
+
+predicciones_labels[
+    "RF_Slow"
+] = pred_rf_labels_slow
+
+
+predicciones_labels[
+    "RF_Fast"
+] = pred_rf_labels_fast
+
+
+ruta_predicciones_labels = (
+    RESULTS_DIR
+    / "predicciones_test_labels.csv"
 )
 
-ruta_resultados = RESULTS_DIR / "metricas_objetivo3.csv"
 
-resultados_completos.to_csv(
-    ruta_resultados,
-    index=False,
+predicciones_labels.to_csv(
+    ruta_predicciones_labels,
+    index=False
 )
 
 
 # ============================================================
-# GUARDAR PREDICCIONES
+# GUARDAR PREDICCIONES TEST DESIGNS
 # ============================================================
 
-predicciones = test_datos[
+predicciones_designs = test_designs[
     [
         "row_id",
         "Delay_Typical",
@@ -849,14 +1887,46 @@ predicciones = test_datos[
     ]
 ].copy()
 
-predicciones["Predicted_Slow"] = pred_test_slow
-predicciones["Predicted_Fast"] = pred_test_fast
 
-ruta_predicciones = RESULTS_DIR / "predicciones_test_designs.csv"
+predicciones_designs[
+    "Baseline_Slow"
+] = baseline_designs
 
-predicciones.to_csv(
-    ruta_predicciones,
-    index=False,
+
+predicciones_designs[
+    "Baseline_Fast"
+] = baseline_designs
+
+
+predicciones_designs[
+    "Ridge_Slow"
+] = pred_ridge_designs_slow
+
+
+predicciones_designs[
+    "Ridge_Fast"
+] = pred_ridge_designs_fast
+
+
+predicciones_designs[
+    "RF_Slow"
+] = pred_rf_designs_slow
+
+
+predicciones_designs[
+    "RF_Fast"
+] = pred_rf_designs_fast
+
+
+ruta_predicciones_designs = (
+    RESULTS_DIR
+    / "predicciones_test_designs.csv"
+)
+
+
+predicciones_designs.to_csv(
+    ruta_predicciones_designs,
+    index=False
 )
 
 
@@ -864,34 +1934,105 @@ predicciones.to_csv(
 # GUARDAR MODELOS
 # ============================================================
 
-import joblib
+joblib.dump(
+    ridge_final_slow,
+    RESULTS_DIR
+    / "modelo_ridge_slow.joblib"
+)
+
+
+joblib.dump(
+    ridge_final_fast,
+    RESULTS_DIR
+    / "modelo_ridge_fast.joblib"
+)
+
 
 joblib.dump(
     modelo_final_slow,
-    RESULTS_DIR / "modelo_random_forest_slow.joblib",
+    RESULTS_DIR
+    / "modelo_random_forest_slow.joblib"
 )
+
 
 joblib.dump(
     modelo_final_fast,
-    RESULTS_DIR / "modelo_random_forest_fast.joblib",
+    RESULTS_DIR
+    / "modelo_random_forest_fast.joblib"
 )
 
 
 # ============================================================
-# FINAL
+# MOSTRAR TABLA FINAL
 # ============================================================
+
+print("\n" + "=" * 70)
+print("TABLA FINAL DE RESULTADOS")
+print("=" * 70)
+
+
+print(
+    resultados_df.to_string(
+        index=False,
+        float_format=lambda x: f"{x:.6f}",
+    )
+)
+
+
+# ============================================================
+# RUTAS DE SALIDA
+# ============================================================
+
+print("\n" + "=" * 70)
+print("ARCHIVOS GENERADOS")
+print("=" * 70)
+
+
+print(
+    f"\nMetricas:"
+)
+
+print(
+    ruta_metricas
+)
+
+
+print(
+    f"\nExperimentos Random Forest:"
+)
+
+print(
+    ruta_experimentos
+)
+
+
+print(
+    f"\nPredicciones Test Labels:"
+)
+
+print(
+    ruta_predicciones_labels
+)
+
+
+print(
+    f"\nPredicciones Test Designs:"
+)
+
+print(
+    ruta_predicciones_designs
+)
+
+
+print(
+    "\nModelos:"
+)
+
+print(
+    RESULTS_DIR
+)
+
 
 print("\n" + "=" * 70)
 print("PROCESO TERMINADO")
 print("=" * 70)
-
-print(f"Resultados:")
-print(ruta_resultados)
-
-print(f"\nPredicciones:")
-print(ruta_predicciones)
-
-print("\nModelos guardados en:")
-print(RESULTS_DIR)
-
-print("\nObjetivo 3 ejecutado correctamente.")
