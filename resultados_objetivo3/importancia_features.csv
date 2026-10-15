@@ -1,0 +1,705 @@
+Objetivo,Esquina,Modelo,Experimento,Feature,Importancia
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,Fanout,0.0001652877715628994
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,Cap,4.275567863696684e-07
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,Slew,0.0004898836891407025
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,Delay_Typical,0.9967085652100036
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,X_drive,0.0003027309773684274
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,Y_drive,0.0002590297285756494
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,X_sink,0.00030013726603651147
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,Y_sink,0.0002705002440447843
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,C_drive,0.0006086015338983903
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,C_sink,0.00035250751068842124
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,X_context,0.00018007678108517298
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,Y_context,0.0001318641181237822
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,σ(X)_context,0.00011900125386741874
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,σ(Y)_context,4.52522492121708e-05
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,Drive_cell_size,3.413808321320141e-05
+Delay completo,Slow,Random Forest,trees=50_depth=20_leaf=2,Sink_cell_size,3.199602639249294e-05
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,Fanout,0.00017205828706830811
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,Cap,3.4671837569240704e-07
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,Slew,0.0005011267112498913
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,Delay_Typical,0.9967004079162021
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,X_drive,0.00029628506976905607
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,Y_drive,0.0002514028662604043
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,X_sink,0.0002993099194897964
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,Y_sink,0.0002723672995661871
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,C_drive,0.0005789554479787686
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,C_sink,0.00037944072756512136
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,X_context,0.0001869653502765956
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,Y_context,0.0001403513145419931
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,σ(X)_context,0.00010565454716830959
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,σ(Y)_context,4.8044746468408613e-05
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,Drive_cell_size,3.330327599572258e-05
+Delay completo,Slow,Random Forest,trees=100_depth=20_leaf=2,Sink_cell_size,3.397980202361899e-05
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,Fanout,0.0001708559559247643
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,Cap,3.9501474951569553e-07
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,Slew,0.0004989365334388982
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,Delay_Typical,0.9967177155042269
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,X_drive,0.00030260664885890787
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,Y_drive,0.00025639437978891496
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,X_sink,0.00029588336035184573
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,Y_sink,0.0002638196320920514
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,C_drive,0.0005815785792555514
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,C_sink,0.00036776538379207395
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,X_context,0.00018273168765438078
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,Y_context,0.00014464999990528837
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,σ(X)_context,0.00010191133408557934
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,σ(Y)_context,4.592944167275475e-05
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,Drive_cell_size,3.300772217287599e-05
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,Sink_cell_size,3.581882202969452e-05
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,Fanout,0.00019754754358527563
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,Cap,5.701812037593052e-07
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,Slew,0.000496481063924595
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,Delay_Typical,0.996706038350493
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,X_drive,0.000303521240984071
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,Y_drive,0.00025639388609793607
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,X_sink,0.00029652685493751203
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,Y_sink,0.0002599565219910674
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,C_drive,0.0005645435496850591
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,C_sink,0.000360916533920442
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,X_context,0.0001898553781018831
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,Y_context,0.00014461416882126816
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,σ(X)_context,0.0001061806958537878
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,σ(Y)_context,4.685580217524648e-05
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,Drive_cell_size,3.37727490352891e-05
+Delay completo,Slow,Random Forest,trees=400_depth=20_leaf=2,Sink_cell_size,3.622547918978297e-05
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,Fanout,0.00018053143402326137
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,Cap,8.190067584266169e-07
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,Slew,0.0004935896364486055
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,Delay_Typical,0.9967037865706002
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,X_drive,0.00030609088146480145
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,Y_drive,0.00025735472484484246
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,X_sink,0.0003006933004225795
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,Y_sink,0.0002575553201878791
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,C_drive,0.0005695421426737358
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,C_sink,0.00037345916163726393
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,X_context,0.00018876316409571265
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,Y_context,0.00014155309065164514
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,σ(X)_context,0.00010832815706449589
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,σ(Y)_context,4.6690970626853904e-05
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,Drive_cell_size,3.443139389179865e-05
+Delay completo,Slow,Random Forest,trees=800_depth=20_leaf=2,Sink_cell_size,3.681104460784789e-05
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Fanout,0.0
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Cap,0.0
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Slew,0.00014479049861139398
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Delay_Typical,0.9979843134673176
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,X_drive,0.0
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_drive,0.0
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,X_sink,0.0
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_sink,2.1445135439332296e-06
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,C_drive,2.665020439550197e-05
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,C_sink,0.0018241353379856312
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,X_context,6.089097943793575e-06
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_context,9.852906948809668e-07
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,σ(X)_context,9.416357639047843e-06
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,σ(Y)_context,5.062173433888406e-07
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Drive_cell_size,0.0
+Delay completo,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Sink_cell_size,9.690145246646044e-07
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,Fanout,0.6695156097412109
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,Cap,6.655186007265002e-05
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,Slew,0.041350655257701874
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,Delay_Typical,0.24764035642147064
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,X_drive,0.0010594927007332444
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,Y_drive,0.0009321183897554874
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,X_sink,0.0010225943988189101
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,Y_sink,0.0004731467051897198
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,C_drive,0.003448192961513996
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,C_sink,0.02471279725432396
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,X_context,0.004496600944548845
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,Y_context,0.0020726865623146296
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,σ(X)_context,0.000914375763386488
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,σ(Y)_context,0.0017779241316020489
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,Drive_cell_size,0.00034395643160678446
+Delay completo,Slow,XGBoost,trees=100_lr=0.05_depth=4,Sink_cell_size,0.00017294494318775833
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Fanout,0.0
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Cap,0.0
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Slew,0.00017838738827082523
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Delay_Typical,0.9976646077811301
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,X_drive,1.0786592035485348e-06
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_drive,7.914967466414846e-06
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,X_sink,6.972821581883173e-06
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_sink,9.944502299123165e-06
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,C_drive,0.00013959462311736537
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,C_sink,0.0018436945849457497
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,X_context,0.00011906354238432363
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_context,1.1947219957758087e-05
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,σ(X)_context,1.1546572539964626e-05
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,σ(Y)_context,2.7470794704640146e-06
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Drive_cell_size,0.0
+Delay completo,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Sink_cell_size,2.500257632552549e-06
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,Fanout,0.5182808041572571
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,Cap,0.00012072044773958623
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,Slew,0.05212463065981865
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,Delay_Typical,0.3804832696914673
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,X_drive,0.0007969581638462842
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,Y_drive,0.001090138335712254
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,X_sink,0.0011285255895927548
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,Y_sink,0.0004729044158011675
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,C_drive,0.003862648271024227
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,C_sink,0.029793141409754753
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,X_context,0.005387012381106615
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,Y_context,0.002724837977439165
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,σ(X)_context,0.0009168392280116677
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,σ(Y)_context,0.0019565557595342398
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,Drive_cell_size,0.00061894761165604
+Delay completo,Slow,XGBoost,trees=200_lr=0.05_depth=4,Sink_cell_size,0.00024207355454564095
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Fanout,0.0
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Cap,2.050774148921157e-09
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Slew,0.00020465490496665752
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Delay_Typical,0.9974277780113537
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,X_drive,6.709896854472371e-06
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_drive,3.457103977339422e-05
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,X_sink,1.375432642142524e-05
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_sink,2.5727810036036958e-05
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,C_drive,0.00017830416266313224
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,C_sink,0.0018736519757111291
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,X_context,0.00016071245615469648
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_context,1.9418898011488436e-05
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,σ(X)_context,3.782882776498814e-05
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,σ(Y)_context,1.1808504747388123e-05
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Drive_cell_size,6.012724703560074e-07
+Delay completo,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Sink_cell_size,4.475862296911511e-06
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,Fanout,0.44514885544776917
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,Cap,0.00018617846944835037
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,Slew,0.06057756021618843
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,Delay_Typical,0.4449426829814911
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,X_drive,0.0007824393687769771
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,Y_drive,0.0011686573270708323
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,X_sink,0.0009188013500533998
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,Y_sink,0.0004643398860935122
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,C_drive,0.0036399329546839
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,C_sink,0.03073117695748806
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,X_context,0.005011332221329212
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,Y_context,0.0026472893077880144
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,σ(X)_context,0.0008233048720285296
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,σ(Y)_context,0.0017770739505067468
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,Drive_cell_size,0.0008925414294935763
+Delay completo,Slow,XGBoost,trees=400_lr=0.05_depth=4,Sink_cell_size,0.00028782960725948215
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,Fanout,1.768382433424768e-07
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,Cap,2.3567911440214993e-07
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,Slew,0.002078660618271573
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,Delay_Typical,0.9815777658757314
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,X_drive,0.0008978022992448002
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,Y_drive,0.001044329881173015
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,X_sink,0.0008478251964103073
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,Y_sink,0.0010524332680995649
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,C_drive,0.0017160144922792665
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,C_sink,0.0014366987271466408
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,X_context,0.0022867133479504364
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,Y_context,0.00595311147010688
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,σ(X)_context,0.0005800030916459297
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,σ(Y)_context,0.00041386010601248107
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,Drive_cell_size,6.137404086763454e-05
+Delay completo,Fast,Random Forest,trees=50_depth=20_leaf=2,Sink_cell_size,5.2995067702317714e-05
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,Fanout,1.6759353500447397e-07
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,Cap,2.697652172326243e-07
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,Slew,0.001983047536830479
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,Delay_Typical,0.9817332055321385
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,X_drive,0.0009081587213642384
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,Y_drive,0.0010500088681564055
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,X_sink,0.0008582579856581568
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,Y_sink,0.0010326849104996339
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,C_drive,0.0017035498836133372
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,C_sink,0.0015586958627491867
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,X_context,0.0018754951098323399
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,Y_context,0.0061332337287975346
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,σ(X)_context,0.0006152750584469302
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,σ(Y)_context,0.0004248523946132652
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,Drive_cell_size,6.465082554233862e-05
+Delay completo,Fast,Random Forest,trees=100_depth=20_leaf=2,Sink_cell_size,5.8446223005234344e-05
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,Fanout,1.460082541212923e-07
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,Cap,2.575388745934552e-07
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,Slew,0.001959519016842883
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,Delay_Typical,0.9820072925306463
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,X_drive,0.0009278505824149296
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,Y_drive,0.0010395058976990956
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,X_sink,0.0008469973293728359
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,Y_sink,0.0010090354004204708
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,C_drive,0.0017025438235804748
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,C_sink,0.0015973386018754642
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,X_context,0.001595366545555721
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,Y_context,0.006079822989588792
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,σ(X)_context,0.0006370959850559927
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,σ(Y)_context,0.000468863139130107
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,Drive_cell_size,6.383373512745154e-05
+Delay completo,Fast,Random Forest,trees=200_depth=20_leaf=2,Sink_cell_size,6.453087556077512e-05
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,Fanout,1.4090419670948464e-07
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,Cap,2.3037691571139053e-07
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,Slew,0.0019929909666145645
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,Delay_Typical,0.9820336546167844
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,X_drive,0.0009073110452461177
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,Y_drive,0.0009973571898798537
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,X_sink,0.0009070360890487196
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,Y_sink,0.0010323728589844673
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,C_drive,0.0017110366480336012
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,C_sink,0.0017522827255452404
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,X_context,0.001618822593669495
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,Y_context,0.0058365405980477505
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,σ(X)_context,0.0006600024497764882
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,σ(Y)_context,0.00041740877128239193
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,Drive_cell_size,6.455710090854917e-05
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,Sink_cell_size,6.825506506595035e-05
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,Fanout,1.3836249699172452e-07
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,Cap,2.2456530642421144e-07
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,Slew,0.0020196014321298625
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,Delay_Typical,0.9818435425234454
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,X_drive,0.0008896847524120064
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,Y_drive,0.0010018901205025783
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,X_sink,0.0009129724459105558
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,Y_sink,0.0010175144020484147
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,C_drive,0.0017069470110929507
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,C_sink,0.001767438276056542
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,X_context,0.0016181572330084915
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,Y_context,0.005985696717759129
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,σ(X)_context,0.0006789407897925751
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,σ(Y)_context,0.0004236667890428877
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,Drive_cell_size,6.34082817526804e-05
+Delay completo,Fast,Random Forest,trees=800_depth=20_leaf=2,Sink_cell_size,7.017629724238621e-05
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Fanout,0.0
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Cap,1.2032778480353478e-06
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Slew,0.0013836492137309037
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Delay_Typical,0.9821726580985468
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,X_drive,0.00035087217510199634
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_drive,0.00010392730837596709
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,X_sink,0.0002047428797795169
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_sink,0.000249606534620769
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,C_drive,0.0010961382629202578
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,C_sink,0.010409654367235961
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,X_context,0.0008291226856868023
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_context,0.002731290650789596
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,σ(X)_context,0.00031854879005586685
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,σ(Y)_context,0.00014858575530769314
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Drive_cell_size,0.0
+Delay completo,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Sink_cell_size,0.0
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,Fanout,0.2523798644542694
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,Cap,0.0003060534072574228
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,Slew,0.06938157230615616
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,Delay_Typical,0.4193066656589508
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,X_drive,0.003140091197565198
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,Y_drive,0.002756858477368951
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,X_sink,0.002705533988773823
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,Y_sink,0.002253398299217224
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,C_drive,0.004439998418092728
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,C_sink,0.20065897703170776
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,X_context,0.01532620470970869
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,Y_context,0.0209652166813612
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,σ(X)_context,0.0022922351490706205
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,σ(Y)_context,0.0024379813112318516
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,Drive_cell_size,0.0008762148790992796
+Delay completo,Fast,XGBoost,trees=100_lr=0.05_depth=4,Sink_cell_size,0.0007731617661193013
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Fanout,1.1744908799153417e-06
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Cap,1.5403220337521605e-06
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Slew,0.001753860286397761
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Delay_Typical,0.9810845640676098
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,X_drive,0.0004068907720804813
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_drive,0.00014047708514869454
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,X_sink,0.00023648081248822656
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_sink,0.00027422992146691944
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,C_drive,0.0013262678928422356
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,C_sink,0.010515514003040636
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,X_context,0.0008892241662605934
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_context,0.002769637474028134
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,σ(X)_context,0.0003411967551723434
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,σ(Y)_context,0.00023514465556245017
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Drive_cell_size,9.713355631353693e-06
+Delay completo,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Sink_cell_size,1.4083939356762045e-05
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,Fanout,0.10508465766906738
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,Cap,0.0004448134859558195
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,Slew,0.07474429905414581
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,Delay_Typical,0.5309181809425354
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,X_drive,0.0031647400464862585
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,Y_drive,0.0030646705999970436
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,X_sink,0.002403772436082363
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,Y_sink,0.0020789694972336292
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,C_drive,0.005322569981217384
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,C_sink,0.2328861951828003
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,X_context,0.013935009017586708
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,Y_context,0.01885353960096836
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,σ(X)_context,0.001917415764182806
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,σ(Y)_context,0.0027143361512571573
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,Drive_cell_size,0.00136854057200253
+Delay completo,Fast,XGBoost,trees=200_lr=0.05_depth=4,Sink_cell_size,0.0010982538806274533
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Fanout,4.0616839808180936e-06
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Cap,1.746744080106606e-06
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Slew,0.0018972512773063712
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Delay_Typical,0.9800986392723976
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,X_drive,0.00042916767836913576
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_drive,0.0001703352513028871
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,X_sink,0.00026643874556953235
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_sink,0.0003290434300469744
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,C_drive,0.0015740858057052894
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,C_sink,0.010662644580195798
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,X_context,0.001005202720872699
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_context,0.0028729456924441706
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,σ(X)_context,0.000381994003611056
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,σ(Y)_context,0.0002676110752638371
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Drive_cell_size,1.7739442840718384e-05
+Delay completo,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Sink_cell_size,2.1092596013182256e-05
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,Fanout,0.08826376497745514
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,Cap,0.0006578457541763783
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,Slew,0.07680278271436691
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,Delay_Typical,0.564906656742096
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,X_drive,0.0033875417429953814
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,Y_drive,0.0028189625591039658
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,X_sink,0.0021832818165421486
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,Y_sink,0.0019403843907639384
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,C_drive,0.0052231596782803535
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,C_sink,0.21667826175689697
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,X_context,0.01243352796882391
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,Y_context,0.01715914160013199
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,σ(X)_context,0.002028916496783495
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,σ(Y)_context,0.0025528452824801207
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,Drive_cell_size,0.0021485944744199514
+Delay completo,Fast,XGBoost,trees=400_lr=0.05_depth=4,Sink_cell_size,0.0008143459563143551
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,Fanout,7.624546226286763e-06
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,Cap,2.5707953592405926e-05
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,Slew,0.09836602167857483
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,Delay_Typical,0.2519996900270216
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,X_drive,0.08687008103175328
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,Y_drive,0.07084814552277162
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,X_sink,0.07983696303398906
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,Y_sink,0.07471486044338459
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,C_drive,0.08369802584698573
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,C_sink,0.09516278937133521
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,X_context,0.059722874275565906
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,Y_context,0.035794875892536666
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,σ(X)_context,0.031564036875586586
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,σ(Y)_context,0.016236918426974462
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,Drive_cell_size,0.008161734209061862
+Delta,Slow,Random Forest,trees=50_depth=20_leaf=2,Sink_cell_size,0.006989650864640027
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,Fanout,7.970563814460563e-06
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,Cap,2.7691979989482033e-05
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,Slew,0.09819768035818204
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,Delay_Typical,0.2529254138058825
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,X_drive,0.085126161567296
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,Y_drive,0.07305831529781448
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,X_sink,0.08363291677256716
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,Y_sink,0.0739351084023398
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,C_drive,0.0805320960282366
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,C_sink,0.0977574878911017
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,X_context,0.058101860514305013
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,Y_context,0.03589241290409317
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,σ(X)_context,0.029422856507410337
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,σ(Y)_context,0.016151352527004472
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,Drive_cell_size,0.007281486939771865
+Delta,Slow,Random Forest,trees=100_depth=20_leaf=2,Sink_cell_size,0.007949187940191001
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,Fanout,8.601364879381671e-06
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,Cap,3.0576995849167364e-05
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,Slew,0.09770016819346262
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,Delay_Typical,0.25213965681305156
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,X_drive,0.0854334832022687
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,Y_drive,0.07379695981700983
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,X_sink,0.08377872097381785
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,Y_sink,0.07455713202529198
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,C_drive,0.08060878983263908
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,C_sink,0.09669036949424557
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,X_context,0.05773475585548295
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,Y_context,0.036181767012890595
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,σ(X)_context,0.029153306399355598
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,σ(Y)_context,0.01594007003817465
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,Drive_cell_size,0.007437261890497906
+Delta,Slow,Random Forest,trees=200_depth=20_leaf=2,Sink_cell_size,0.008808380091082719
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,Fanout,8.760042395780989e-06
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,Cap,3.062713125865795e-05
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,Slew,0.09862441058313709
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,Delay_Typical,0.2526644930796867
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,X_drive,0.08531959976518284
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,Y_drive,0.07197176236224359
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,X_sink,0.08494510831160366
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,Y_sink,0.073918682474532
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,C_drive,0.08016637886825714
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,C_sink,0.09594549988102491
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,X_context,0.058508804712986605
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,Y_context,0.03768899007200803
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,σ(X)_context,0.02848287966155461
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,σ(Y)_context,0.015670918975179048
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,Drive_cell_size,0.007800920636977873
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,Sink_cell_size,0.008252163441971262
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,Fanout,8.586434670025868e-06
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,Cap,2.9406600283238945e-05
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,Slew,0.09838467031075872
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,Delay_Typical,0.25434341554395007
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,X_drive,0.08510050978055972
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,Y_drive,0.07227137807570583
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,X_sink,0.0857826208246375
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,Y_sink,0.07303322617073886
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,C_drive,0.07995487699615189
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,C_sink,0.09536711512918099
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,X_context,0.05721847267985429
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,Y_context,0.037798750406865554
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,σ(X)_context,0.0289772910759725
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,σ(Y)_context,0.0157845766397424
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,Drive_cell_size,0.007950936380505936
+Delta,Slow,Random Forest,trees=800_depth=20_leaf=2,Sink_cell_size,0.007994166950422535
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Fanout,2.939639371904507e-05
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Cap,0.00014721196953516112
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Slew,0.18201539767103786
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Delay_Typical,0.23642991560567633
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,X_drive,0.004573935294660938
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_drive,0.01235565845723151
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,X_sink,0.013643547368045711
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_sink,0.010719756196349227
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,C_drive,0.18357858065748162
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,C_sink,0.1949466266077582
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,X_context,0.1163355973713258
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_context,0.007247548029998626
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,σ(X)_context,0.02120002747007658
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,σ(Y)_context,0.0010335929111977026
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Drive_cell_size,0.009125154584582969
+Delta,Slow,Gradient Boosting,trees=100_lr=0.05_depth=3,Sink_cell_size,0.006618053411322767
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,Fanout,0.017270799726247787
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,Cap,0.01334848441183567
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,Slew,0.12037525326013565
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,Delay_Typical,0.1010308787226677
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,X_drive,0.046776607632637024
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,Y_drive,0.08460509777069092
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,X_sink,0.06944724917411804
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,Y_sink,0.06724077463150024
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,C_drive,0.08603157103061676
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,C_sink,0.0867585688829422
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,X_context,0.06255365908145905
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,Y_context,0.04966888204216957
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,σ(X)_context,0.037096355110406876
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,σ(Y)_context,0.013576180674135685
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,Drive_cell_size,0.10025220364332199
+Delta,Slow,XGBoost,trees=100_lr=0.05_depth=4,Sink_cell_size,0.04396742209792137
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Fanout,0.00020890509899062405
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Cap,0.0019102097436029754
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Slew,0.16318834052767842
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Delay_Typical,0.2338510835563104
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,X_drive,0.006970064292726276
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_drive,0.014228059795832243
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,X_sink,0.016962070462821242
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_sink,0.014277920398644442
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,C_drive,0.17571748179785385
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,C_sink,0.17570121091909108
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,X_context,0.14182985925800465
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_context,0.009180005785908303
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,σ(X)_context,0.019420226258346572
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,σ(Y)_context,0.010315072631165583
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Drive_cell_size,0.0073683370966497845
+Delta,Slow,Gradient Boosting,trees=200_lr=0.05_depth=3,Sink_cell_size,0.008871152376373556
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,Fanout,0.018712308257818222
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,Cap,0.01562367845326662
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,Slew,0.12008347362279892
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,Delay_Typical,0.09634339064359665
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,X_drive,0.045567017048597336
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,Y_drive,0.07967206835746765
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,X_sink,0.056357838213443756
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,Y_sink,0.06255026161670685
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,C_drive,0.08377750962972641
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,C_sink,0.08158690482378006
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,X_context,0.0646560937166214
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,Y_context,0.05823949724435806
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,σ(X)_context,0.031725358217954636
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,σ(Y)_context,0.021314989775419235
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,Drive_cell_size,0.1004771813750267
+Delta,Slow,XGBoost,trees=200_lr=0.05_depth=4,Sink_cell_size,0.06331248581409454
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Fanout,0.0004677082909924378
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Cap,0.0025866690078739903
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Slew,0.15128881966036534
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Delay_Typical,0.2464337074442073
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,X_drive,0.013501902616718941
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_drive,0.021861981539968687
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,X_sink,0.018126444499613648
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_sink,0.02154452964619491
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,C_drive,0.1601065090566576
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,C_sink,0.15805633302537586
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,X_context,0.13223284598980573
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_context,0.013747852245396472
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,σ(X)_context,0.025456121758590293
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,σ(Y)_context,0.01756034038429059
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Drive_cell_size,0.0072780301947533875
+Delta,Slow,Gradient Boosting,trees=400_lr=0.05_depth=3,Sink_cell_size,0.009750204639194826
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,Fanout,0.02730853669345379
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,Cap,0.016836147755384445
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,Slew,0.11183887720108032
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,Delay_Typical,0.0930965319275856
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,X_drive,0.0501982681453228
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,Y_drive,0.07120838761329651
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,X_sink,0.04743480682373047
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,Y_sink,0.06537571549415588
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,C_drive,0.07544933259487152
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,C_sink,0.07744962722063065
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,X_context,0.061267346143722534
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,Y_context,0.05225741118192673
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,σ(X)_context,0.02869924157857895
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,σ(Y)_context,0.027740543708205223
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,Drive_cell_size,0.1167701780796051
+Delta,Slow,XGBoost,trees=400_lr=0.05_depth=4,Sink_cell_size,0.07706905901432037
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,Fanout,1.3320488301295353e-05
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,Cap,1.0851915540137164e-05
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,Slew,0.08569134107352187
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,Delay_Typical,0.4329721956880167
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,X_drive,0.04638210759786214
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,Y_drive,0.04689993911023589
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,X_sink,0.046513160041897324
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,Y_sink,0.048615046183438954
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,C_drive,0.07702963844747429
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,C_sink,0.05881327956398459
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,X_context,0.041599710073701106
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,Y_context,0.04795733272700321
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,σ(X)_context,0.035273905129104895
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,σ(Y)_context,0.02869369280339011
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,Drive_cell_size,0.0016502907272468407
+Delta,Fast,Random Forest,trees=50_depth=20_leaf=2,Sink_cell_size,0.0018841884292806147
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,Fanout,1.2443066884047155e-05
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,Cap,2.7785633694799728e-05
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,Slew,0.08660890676315547
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,Delay_Typical,0.42444653214634837
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,X_drive,0.048714367984972994
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,Y_drive,0.04785470994148377
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,X_sink,0.04785119836557514
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,Y_sink,0.04733279639506616
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,C_drive,0.07506092486650599
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,C_sink,0.05945092635800842
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,X_context,0.04700103652329292
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,Y_context,0.048095191648939196
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,σ(X)_context,0.03321310899871678
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,σ(Y)_context,0.030684429127320265
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,Drive_cell_size,0.0016412640912382283
+Delta,Fast,Random Forest,trees=100_depth=20_leaf=2,Sink_cell_size,0.0020043780887975624
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,Fanout,1.1440916358948356e-05
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,Cap,2.2809302608835814e-05
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,Slew,0.08893051496365445
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,Delay_Typical,0.41613912196021263
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,X_drive,0.04993942226834641
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,Y_drive,0.04800951217188736
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,X_sink,0.04887503456429591
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,Y_sink,0.04872590881609719
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,C_drive,0.07608028964135971
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,C_sink,0.06026953544268903
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,X_context,0.04604015707483797
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,Y_context,0.047327673756238746
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,σ(X)_context,0.03387316321631397
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,σ(Y)_context,0.03199038143869531
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,Drive_cell_size,0.0017998194891754695
+Delta,Fast,Random Forest,trees=200_depth=20_leaf=2,Sink_cell_size,0.001965214977227929
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,Fanout,1.5602786590803323e-05
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,Cap,2.1871144721970557e-05
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,Slew,0.08986108199136222
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,Delay_Typical,0.41087336823499143
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,X_drive,0.0504702798501202
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,Y_drive,0.04773920122263821
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,X_sink,0.0487706173982577
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,Y_sink,0.04897922296160286
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,C_drive,0.07712005158802039
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,C_sink,0.06016101209392358
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,X_context,0.04638007965797067
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,Y_context,0.047220183855582354
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,σ(X)_context,0.032463876966918305
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,σ(Y)_context,0.0362078631050432
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,Drive_cell_size,0.001914638130361698
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,Sink_cell_size,0.0018010490118944263
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,Fanout,1.4608007098063446e-05
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,Cap,2.2429369838733435e-05
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,Slew,0.09213341355563975
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,Delay_Typical,0.4113109847756413
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,X_drive,0.049116552223624196
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,Y_drive,0.0474233809282104
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,X_sink,0.04910349230545839
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,Y_sink,0.04895963256133393
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,C_drive,0.07639041123654362
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,C_sink,0.05977296639162458
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,X_context,0.045625722834873664
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,Y_context,0.046398402900362956
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,σ(X)_context,0.03345238659526639
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,σ(Y)_context,0.0366765778550976
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,Drive_cell_size,0.0017963733277434684
+Delta,Fast,Random Forest,trees=800_depth=20_leaf=2,Sink_cell_size,0.0018026651316428578
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Fanout,0.0003139691344672973
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Cap,0.0
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Slew,0.09806180566816389
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Delay_Typical,0.6103583775149252
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,X_drive,0.04382785993200802
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_drive,0.004729276371333465
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,X_sink,0.003859143718668179
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_sink,0.0032976650320153435
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,C_drive,0.06537356578144508
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,C_sink,0.0750719287481491
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,X_context,0.003156719725783611
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Y_context,0.008654768245385717
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,σ(X)_context,0.018738058085737242
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,σ(Y)_context,0.06370123622677265
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Drive_cell_size,0.00013038566137146818
+Delta,Fast,Gradient Boosting,trees=100_lr=0.05_depth=3,Sink_cell_size,0.0007252401537738296
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,Fanout,0.039679475128650665
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,Cap,0.031679749488830566
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,Slew,0.12345577776432037
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,Delay_Typical,0.13372838497161865
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,X_drive,0.07169507443904877
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,Y_drive,0.06847100704908371
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,X_sink,0.06229189410805702
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,Y_sink,0.04020490497350693
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,C_drive,0.05276454985141754
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,C_sink,0.0807902067899704
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,X_context,0.09042252600193024
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,Y_context,0.09289496392011642
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,σ(X)_context,0.022569043561816216
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,σ(Y)_context,0.03356035426259041
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,Drive_cell_size,0.045215580612421036
+Delta,Fast,XGBoost,trees=100_lr=0.05_depth=4,Sink_cell_size,0.010576528497040272
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Fanout,0.00026948705619162633
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Cap,8.458434093087927e-07
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Slew,0.10782735280106942
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Delay_Typical,0.5708467527298882
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,X_drive,0.04015314239814741
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_drive,0.006259810887653414
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,X_sink,0.005133606629964468
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_sink,0.006869011049309998
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,C_drive,0.08039007361452084
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,C_sink,0.07739094379532992
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,X_context,0.009401969741118031
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Y_context,0.012086755196356234
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,σ(X)_context,0.020948340524777617
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,σ(Y)_context,0.06142163490994462
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Drive_cell_size,0.00019885331919654097
+Delta,Fast,Gradient Boosting,trees=200_lr=0.05_depth=3,Sink_cell_size,0.0008014195031224874
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,Fanout,0.039930202066898346
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,Cap,0.035787973552942276
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,Slew,0.11070819199085236
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,Delay_Typical,0.1282496154308319
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,X_drive,0.06648887693881989
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,Y_drive,0.06652722507715225
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,X_sink,0.061954520642757416
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,Y_sink,0.0409366600215435
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,C_drive,0.05737420916557312
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,C_sink,0.0848061740398407
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,X_context,0.08817684650421143
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,Y_context,0.08608347922563553
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,σ(X)_context,0.024586481973528862
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,σ(Y)_context,0.03191015496850014
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,Drive_cell_size,0.05493760108947754
+Delta,Fast,XGBoost,trees=200_lr=0.05_depth=4,Sink_cell_size,0.02154182642698288
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Fanout,0.0009505530379049905
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Cap,0.0002554383811929138
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Slew,0.10809212262445211
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Delay_Typical,0.5341756600392061
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,X_drive,0.03972273871344634
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_drive,0.009033078374013768
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,X_sink,0.008700709474653312
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_sink,0.011369140812240745
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,C_drive,0.09497841407042563
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,C_sink,0.08081721637427355
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,X_context,0.017687395996027637
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Y_context,0.014252660083370974
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,σ(X)_context,0.022447411646763043
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,σ(Y)_context,0.05603349788899778
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Drive_cell_size,0.00025281515762102456
+Delta,Fast,Gradient Boosting,trees=400_lr=0.05_depth=3,Sink_cell_size,0.0012311473254100745
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,Fanout,0.04008440673351288
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,Cap,0.04402979090809822
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,Slew,0.10943176597356796
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,Delay_Typical,0.12351758778095245
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,X_drive,0.0681762769818306
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,Y_drive,0.06362942606210709
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,X_sink,0.05451209098100662
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,Y_sink,0.041114598512649536
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,C_drive,0.058402132242918015
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,C_sink,0.08249291777610779
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,X_context,0.08989419043064117
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,Y_context,0.08582685142755508
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,σ(X)_context,0.030154429376125336
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,σ(Y)_context,0.030649565160274506
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,Drive_cell_size,0.050875429064035416
+Delta,Fast,XGBoost,trees=400_lr=0.05_depth=4,Sink_cell_size,0.027208615094423294

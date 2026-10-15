@@ -1,0 +1,5 @@
+Objetivo,Esquina,Modelo,Experimento,RMSE_validacion
+Delay completo,Slow,Random Forest,trees=200_depth=20_leaf=2,0.2188038318327476
+Delay completo,Fast,Random Forest,trees=400_depth=20_leaf=2,0.30417685799381233
+Delta,Slow,Random Forest,trees=400_depth=20_leaf=2,0.216032587012589
+Delta,Fast,Random Forest,trees=400_depth=20_leaf=2,0.28870426116777076

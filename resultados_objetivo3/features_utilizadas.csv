@@ -1,0 +1,17 @@
+Feature
+Fanout
+Cap
+Slew
+Delay_Typical
+X_drive
+Y_drive
+X_sink
+Y_sink
+C_drive
+C_sink
+X_context
+Y_context
+σ(X)_context
+σ(Y)_context
+Drive_cell_size
+Sink_cell_size

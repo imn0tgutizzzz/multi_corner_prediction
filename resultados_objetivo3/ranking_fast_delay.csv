@@ -1,0 +1,20 @@
+Esquina,Objetivo,Modelo,Experimento,RMSE_Delay_Validacion
+Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",0.30045979426638275
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",0.3031618035427817
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 300}",0.30518702159353595
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 500}",0.3053549722001878
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 200}",0.30568812615346985
+Fast,Delay,Random Forest,"{""max_depth"": 30, ""min_samples_leaf"": 2, ""n_estimators"": 100}",0.30646413663243655
+Fast,Delay,Random Forest,"{""max_depth"": null, ""min_samples_leaf"": 2, ""n_estimators"": 100}",0.3070333891192146
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 100}",0.3082835129890093
+Fast,Delay,XGBoost,"{""colsample_bytree"": 0.9, ""learning_rate"": 0.05, ""max_depth"": 5, ""n_estimators"": 500, ""subsample"": 0.9}",0.30882850970007336
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 50}",0.31114497563975924
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 1, ""n_estimators"": 100}",0.31241800250521373
+Fast,Delay,XGBoost,"{""colsample_bytree"": 0.9, ""learning_rate"": 0.05, ""max_depth"": 5, ""n_estimators"": 300, ""subsample"": 0.9}",0.31334218433412364
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 10}",0.3140048461295128
+Fast,Delay,Random Forest,"{""max_depth"": 10, ""min_samples_leaf"": 2, ""n_estimators"": 100}",0.31779538583192213
+Fast,Delay,XGBoost,"{""colsample_bytree"": 0.9, ""learning_rate"": 0.05, ""max_depth"": 5, ""n_estimators"": 200, ""subsample"": 0.9}",0.31814968807400335
+Fast,Delay,Ridge,"{""alpha"": 1.0}",0.3284516195679834
+Fast,Delay,XGBoost,"{""colsample_bytree"": 0.9, ""learning_rate"": 0.05, ""max_depth"": 5, ""n_estimators"": 100, ""subsample"": 0.9}",0.3293660339090414
+Fast,Delay,Gradient Boosting,"{""learning_rate"": 0.05, ""max_depth"": 3, ""n_estimators"": 100}",0.3430390346468318
+Fast,Delay,SVR,"{""C"": 1.0, ""epsilon"": 0.1, ""kernel"": ""rbf""}",0.4832945959404303

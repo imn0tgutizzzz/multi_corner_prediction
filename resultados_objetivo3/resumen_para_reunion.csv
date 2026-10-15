@@ -1,0 +1,17 @@
+Esquina,Objetivo,Modelo,Experimento,Conjunto,MAE,RMSE,R2,Pearson
+Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.022683176,0.121728484,0.997644486,0.99882174
+Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Validacion,,,,
+Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.068469347,0.257966298,0.993853036,0.999014975
+Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.066478614,0.327637925,0.929399862,0.964533459
+Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.021395771,0.116687435,0.997835541,0.998917322
+Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Validacion,,,,
+Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.034621226,0.123158568,0.998598917,0.999321924
+Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.068016919,0.332463147,0.927305051,0.963389869
+Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",Train final,0.082479418,0.246322101,0.99012179,0.99506261
+Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",Validacion,,,,
+Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",Test Labels,0.105713188,0.366066248,0.98760525,0.998468561
+Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",Test Designs,0.102629459,0.377009072,0.879875286,0.94127796
+Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.040896727,0.190627367,0.994083812,0.997038872
+Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Validacion,,,,
+Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.195709407,1.081302691,0.891853376,0.991308568
+Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.089482483,0.362495964,0.888945768,0.946230762
