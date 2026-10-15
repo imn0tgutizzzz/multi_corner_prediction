@@ -1,2638 +1,3288 @@
 from pathlib import Path
-
+import json
 import joblib
 import numpy as np
 import pandas as pd
+
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from sklearn.ensemble import (
     RandomForestRegressor,
     GradientBoostingRegressor,
+    HistGradientBoostingRegressor,
 )
-
 from sklearn.impute import SimpleImputer
-
 from sklearn.linear_model import Ridge
-
-from sklearn.metrics import (
-    mean_absolute_error,
-    mean_squared_error,
-    r2_score,
-)
-
+from sklearn.svm import SVR
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
-
 from sklearn.pipeline import Pipeline
-
 from sklearn.preprocessing import StandardScaler
+
+try:
+    from xgboost import XGBRegressor
+except ImportError as exc:
+    raise SystemExit(
+        "No se encontro XGBoost.\n"
+        "Instale con:\n"
+        "python -m pip install xgboost"
+    ) from exc
 
 
 # ============================================================
-# RUTAS
+# OBJETIVO 3 - MACHINE LEARNING MULTICORNER
+#
+# Se comparan dos estrategias:
+#
+# 1) DELAY DIRECTO
+#       modelo -> Delay Slow/Fast
+#
+# 2) DELTA
+#       modelo -> Delta Slow/Fast
+#
+#       Delta_Slow = Delay_Slow - Delay_Typical
+#       Delta_Fast = Delay_Fast - Delay_Typical
+#
+#       Delay_pred = Delay_Typical + Delta_pred
+#
+# Ademas se comparan:
+#   - Baseline
+#   - Ridge
+#   - Random Forest
+#   - Gradient Boosting
+#   - Hist Gradient Boosting
+#   - XGBoost
+#   - SVR
+#
+# Se evaluan:
+#   - Train
+#   - Validacion
+#   - Test Labels
+#   - Test Designs
+#
+# Metricas:
+#   - MAE
+#   - RMSE
+#   - R2
+#   - Pearson
+#
+# Tambien:
+#   - cantidad de arboles
+#   - feature importance
+#   - graficas
+#   - predicciones
+#
+# IMPORTANTE:
+# Delay_Typical se utiliza como feature porque se supone conocido.
+#
+# Delta original NO se utiliza como feature para evitar leakage.
+# ============================================================
+
+
+# ============================================================
+# CONFIGURACION
 # ============================================================
 
 BASE_DIR = Path(__file__).resolve().parent
 
-DATA_DIR = BASE_DIR
-
 RESULTS_DIR = BASE_DIR / "resultados_objetivo3"
-
-RESULTS_DIR.mkdir(exist_ok=True)
-
 GRAFICAS_DIR = RESULTS_DIR / "graficas"
+IMPORTANCIA_DIR = RESULTS_DIR / "importancia"
 
-GRAFICAS_DIR.mkdir(exist_ok=True)
-
-
-# ============================================================
-# ARCHIVOS DE ENTRENAMIENTO
-# ============================================================
-
-TRAIN_TYPICAL = DATA_DIR / "treated_labels_train_typical.csv"
-TRAIN_SLOW = DATA_DIR / "treated_labels_train_slow.csv"
-TRAIN_FAST = DATA_DIR / "treated_labels_train_fast.csv"
+RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+GRAFICAS_DIR.mkdir(parents=True, exist_ok=True)
+IMPORTANCIA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# ============================================================
-# ARCHIVOS TEST LABELS
-# ============================================================
+RANDOM_STATE = 42
 
-TEST_LABELS_TYPICAL = DATA_DIR / "treated_labels_typical.csv"
-TEST_LABELS_SLOW = DATA_DIR / "treated_labels_slow.csv"
-TEST_LABELS_FAST = DATA_DIR / "treated_labels_fast.csv"
+# SVR puede ser muy lento con 60 mil muestras.
+# Se utiliza una muestra para entrenarlo.
+SVR_MAX_TRAIN = 12000
+
+# Para evitar graficas gigantes.
+PLOT_MAX_POINTS = 15000
 
 
 # ============================================================
-# ARCHIVOS TEST DESIGNS
+# COLUMNAS
 # ============================================================
 
-TEST_DESIGNS_TYPICAL = DATA_DIR / "treated_test_designs_typical.csv"
-TEST_DESIGNS_SLOW = DATA_DIR / "treated_test_designs_slow.csv"
-TEST_DESIGNS_FAST = DATA_DIR / "treated_test_designs_fast.csv"
-
-
-# ============================================================
-# FUNCIONES GENERALES
-# ============================================================
-
-def calcular_metricas(y_real, y_pred):
-
-    mae = mean_absolute_error(
-        y_real,
-        y_pred,
-    )
-
-    rmse = np.sqrt(
-        mean_squared_error(
-            y_real,
-            y_pred,
-        )
-    )
-
-    r2 = r2_score(
-        y_real,
-        y_pred,
-    )
-
-    pearson = np.corrcoef(
-        y_real,
-        y_pred,
-    )[0, 1]
-
-    return mae, rmse, r2, pearson
-
-
-# ============================================================
-# GUARDAR RESULTADO
-# ============================================================
-
-def crear_resultado(
-    modelo,
-    experimento,
-    conjunto,
-    esquina,
-    y_real,
-    y_pred,
-):
-
-    mae, rmse, r2, pearson = calcular_metricas(
-        y_real,
-        y_pred,
-    )
-
-    return {
-        "Modelo": modelo,
-        "Experimento": experimento,
-        "Conjunto": conjunto,
-        "Esquina": esquina,
-        "MAE": mae,
-        "RMSE": rmse,
-        "R2": r2,
-        "Pearson": pearson,
-    }
-
-
-# ============================================================
-# VERIFICAR ARCHIVOS
-# ============================================================
-
-archivos = [
-
-    TRAIN_TYPICAL,
-    TRAIN_SLOW,
-    TRAIN_FAST,
-
-    TEST_LABELS_TYPICAL,
-    TEST_LABELS_SLOW,
-    TEST_LABELS_FAST,
-
-    TEST_DESIGNS_TYPICAL,
-    TEST_DESIGNS_SLOW,
-    TEST_DESIGNS_FAST,
-]
-
-
-print("=" * 70)
-print("VERIFICACION DE ARCHIVOS")
-print("=" * 70)
-
-
-for archivo in archivos:
-
-    if not archivo.exists():
-
-        raise FileNotFoundError(
-            f"No se encontro el archivo:\n{archivo}"
-        )
-
-    print(
-        f"OK: {archivo.name}"
-    )
-
-
-# ============================================================
-# CARGAR TRAIN
-# ============================================================
-
-print("\n" + "=" * 70)
-print("CARGANDO DATOS DE ENTRENAMIENTO")
-print("=" * 70)
-
-
-train_typical = pd.read_csv(
-    TRAIN_TYPICAL
-)
-
-train_slow = pd.read_csv(
-    TRAIN_SLOW
-)
-
-train_fast = pd.read_csv(
-    TRAIN_FAST
-)
-
-
-print(
-    f"Typical: {train_typical.shape}"
-)
-
-print(
-    f"Slow:    {train_slow.shape}"
-)
-
-print(
-    f"Fast:    {train_fast.shape}"
-)
-
-
-# ============================================================
-# LLAVE PARA IDENTIFICAR CADA CAMINO
-# ============================================================
-
-columnas_llave = [
+COLUMNAS_LLAVE = [
     "Previous_description",
     "Description",
 ]
 
 
-# ============================================================
-# VERIFICAR CORRESPONDENCIA
-# ============================================================
-
-print("\n" + "=" * 70)
-print("VERIFICANDO CORRESPONDENCIA ENTRE ESQUINAS")
-print("=" * 70)
-
-
-for nombre, datos in [
-
-    ("Typical", train_typical),
-    ("Slow", train_slow),
-    ("Fast", train_fast),
-
-]:
-
-    if datos.duplicated(
-        columnas_llave
-    ).any():
-
-        raise ValueError(
-            f"Hay caminos duplicados en {nombre}."
-        )
-
-
-llaves_typical = set(
-    zip(
-        train_typical["Previous_description"],
-        train_typical["Description"],
-    )
-)
-
-
-llaves_slow = set(
-    zip(
-        train_slow["Previous_description"],
-        train_slow["Description"],
-    )
-)
-
-
-llaves_fast = set(
-    zip(
-        train_fast["Previous_description"],
-        train_fast["Description"],
-    )
-)
-
-
-if llaves_typical != llaves_slow:
-
-    raise ValueError(
-        "Typical y Slow no contienen los mismos caminos."
-    )
-
-
-if llaves_typical != llaves_fast:
-
-    raise ValueError(
-        "Typical y Fast no contienen los mismos caminos."
-    )
-
-
-print(
-    "Los tres archivos contienen los mismos segmentos."
-)
-
-
-print(
-    f"Segmentos correspondientes: "
-    f"{len(llaves_typical):,}"
-)
-
-
-# ============================================================
-# CREAR DATASET MULTICORNER
-# ============================================================
-
-print("\n" + "=" * 70)
-print("CREANDO DATASET MULTICORNER")
-print("=" * 70)
-
-
-slow_delay = train_slow[
-    columnas_llave + ["Delay"]
-].rename(
-    columns={
-        "Delay": "Delay_Slow"
-    }
-)
-
-
-fast_delay = train_fast[
-    columnas_llave + ["Delay"]
-].rename(
-    columns={
-        "Delay": "Delay_Fast"
-    }
-)
-
-
-datos_train = train_typical.rename(
-    columns={
-        "Delay": "Delay_Typical"
-    }
-).copy()
-
-
-datos_train = datos_train.merge(
-    slow_delay,
-    on=columnas_llave,
-    how="inner",
-    validate="one_to_one",
-)
-
-
-datos_train = datos_train.merge(
-    fast_delay,
-    on=columnas_llave,
-    how="inner",
-    validate="one_to_one",
-)
-
-
-print(
-    f"Dataset final: {datos_train.shape}"
-)
-
-
-if len(datos_train) != len(train_typical):
-
-    raise ValueError(
-        "Se perdieron caminos durante la union."
-    )
-
-
-# ============================================================
-# VARIABLES DE ENTRADA
-# ============================================================
-
-columnas_excluir = [
-
+# Estas columnas NO pueden entrar como features.
+COLUMNAS_EXCLUIR = {
     "row_id",
-
+    "Design",
+    "Path #",
     "Previous_description",
-
     "Description",
-
     "Delta",
-
     "Delay_Slow",
-
     "Delay_Fast",
-
-]
-
-
-columnas_features = [
-
-    columna
-
-    for columna in datos_train.columns
-
-    if columna not in columnas_excluir
-
-]
-
-
-print("\nVariables utilizadas por el modelo:")
-
-
-for columna in columnas_features:
-
-    print(
-        f"  - {columna}"
-    )
-
-
-print(
-    f"\nCantidad de variables: "
-    f"{len(columnas_features)}"
-)
-
-
-print(
-    f"Cantidad de observaciones: "
-    f"{len(datos_train):,}"
-)
+    "Delta_Slow",
+    "Delta_Fast",
+}
 
 
 # ============================================================
-# MATRIZ X Y VARIABLES OBJETIVO
+# CARGAR Y ALINEAR LOS TRES CORNERS
 # ============================================================
 
-X = datos_train[
-    columnas_features
-].copy()
+def cargar_multicorner(prefijo):
 
-
-X = X.apply(
-    pd.to_numeric,
-    errors="coerce",
-)
-
-
-y_slow = datos_train[
-    "Delay_Slow"
-].copy()
-
-
-y_fast = datos_train[
-    "Delay_Fast"
-].copy()
-
-
-# ============================================================
-# DIVISION TRAIN / VALIDACION
-# ============================================================
-
-print("\n" + "=" * 70)
-print("DIVISION DE DATOS")
-print("=" * 70)
-
-
-indices = np.arange(
-    len(X)
-)
-
-
-indices_train, indices_validacion = train_test_split(
-    indices,
-    test_size=0.20,
-    random_state=42,
-)
-
-
-X_train = X.iloc[
-    indices_train
-].copy()
-
-
-X_validacion = X.iloc[
-    indices_validacion
-].copy()
-
-
-y_slow_train = y_slow.iloc[
-    indices_train
-].copy()
-
-
-y_slow_validacion = y_slow.iloc[
-    indices_validacion
-].copy()
-
-
-y_fast_train = y_fast.iloc[
-    indices_train
-].copy()
-
-
-y_fast_validacion = y_fast.iloc[
-    indices_validacion
-].copy()
-
-
-print(
-    f"Entrenamiento: {len(X_train):,}"
-)
-
-
-print(
-    f"Validacion:    {len(X_validacion):,}"
-)
-
-
-# ============================================================
-# LISTA DE RESULTADOS
-# ============================================================
-
-resultados = []
-
-
-# ============================================================
-# PREDICCIONES DEL BASELINE
-# ============================================================
-
-print("\n" + "=" * 70)
-print("BASELINE")
-print("=" * 70)
-
-
-print(
-    "Baseline: usar Delay_Typical "
-    "como prediccion de Slow y Fast."
-)
-
-
-# ------------------------------
-# TRAIN
-# ------------------------------
-
-baseline_train_slow = datos_train.iloc[
-    indices_train
-]["Delay_Typical"].values
-
-
-baseline_train_fast = datos_train.iloc[
-    indices_train
-]["Delay_Typical"].values
-
-
-resultados.append(
-    crear_resultado(
-        "Baseline",
-        "Typical como prediccion",
-        "Train",
-        "Slow",
-        y_slow_train,
-        baseline_train_slow,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Baseline",
-        "Typical como prediccion",
-        "Train",
-        "Fast",
-        y_fast_train,
-        baseline_train_fast,
-    )
-)
-
-
-# ------------------------------
-# VALIDACION
-# ------------------------------
-
-baseline_validacion_slow = datos_train.iloc[
-    indices_validacion
-]["Delay_Typical"].values
-
-
-baseline_validacion_fast = datos_train.iloc[
-    indices_validacion
-]["Delay_Typical"].values
-
-
-resultados.append(
-    crear_resultado(
-        "Baseline",
-        "Typical como prediccion",
-        "Validacion",
-        "Slow",
-        y_slow_validacion,
-        baseline_validacion_slow,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Baseline",
-        "Typical como prediccion",
-        "Validacion",
-        "Fast",
-        y_fast_validacion,
-        baseline_validacion_fast,
-    )
-)
-
-
-# ============================================================
-# MODELO RIDGE
-# ============================================================
-
-print("\n" + "=" * 70)
-print("RIDGE")
-print("=" * 70)
-
-
-modelo_ridge_slow = Pipeline(
-    steps=[
-
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="median"
-            ),
-        ),
-
-        (
-            "scaler",
-            StandardScaler(),
-        ),
-
-        (
-            "modelo",
-            Ridge(
-                alpha=1.0
-            ),
-        ),
-
-    ]
-)
-
-
-modelo_ridge_fast = Pipeline(
-    steps=[
-
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="median"
-            ),
-        ),
-
-        (
-            "scaler",
-            StandardScaler(),
-        ),
-
-        (
-            "modelo",
-            Ridge(
-                alpha=1.0
-            ),
-        ),
-
-    ]
-)
-
-
-# ------------------------------
-# RIDGE SLOW
-# ------------------------------
-
-modelo_ridge_slow.fit(
-    X_train,
-    y_slow_train,
-)
-
-
-pred_ridge_slow_train = (
-    modelo_ridge_slow.predict(
-        X_train
-    )
-)
-
-
-pred_ridge_slow_validacion = (
-    modelo_ridge_slow.predict(
-        X_validacion
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Ridge",
-        "alpha=1.0",
-        "Train",
-        "Slow",
-        y_slow_train,
-        pred_ridge_slow_train,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Ridge",
-        "alpha=1.0",
-        "Validacion",
-        "Slow",
-        y_slow_validacion,
-        pred_ridge_slow_validacion,
-    )
-)
-
-
-# ------------------------------
-# RIDGE FAST
-# ------------------------------
-
-modelo_ridge_fast.fit(
-    X_train,
-    y_fast_train,
-)
-
-
-pred_ridge_fast_train = (
-    modelo_ridge_fast.predict(
-        X_train
-    )
-)
-
-
-pred_ridge_fast_validacion = (
-    modelo_ridge_fast.predict(
-        X_validacion
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Ridge",
-        "alpha=1.0",
-        "Train",
-        "Fast",
-        y_fast_train,
-        pred_ridge_fast_train,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Ridge",
-        "alpha=1.0",
-        "Validacion",
-        "Fast",
-        y_fast_validacion,
-        pred_ridge_fast_validacion,
-    )
-)
-
-
-# ============================================================
-# EXPERIMENTOS RANDOM FOREST
-# ============================================================
-
-print("\n" + "=" * 70)
-print("EXPERIMENTOS RANDOM FOREST")
-print("=" * 70)
-
-
-experimentos_rf = [
-
-    {
-        "trees": 10,
-        "depth": 20,
-        "leaf": 2,
-    },
-
-    {
-        "trees": 50,
-        "depth": 20,
-        "leaf": 2,
-    },
-
-    {
-        "trees": 100,
-        "depth": 20,
-        "leaf": 2,
-    },
-
-    {
-        "trees": 200,
-        "depth": 20,
-        "leaf": 2,
-    },
-
-]
-
-
-resultados_experimentos_rf = []
-
-
-modelos_rf_validacion = {}
-
-
-for configuracion in experimentos_rf:
-
-    trees = configuracion["trees"]
-
-    depth = configuracion["depth"]
-
-    leaf = configuracion["leaf"]
-
-
-    nombre_experimento = (
-        f"trees={trees}_depth={depth}_leaf={leaf}"
-    )
-
+    archivos = {}
 
     print("\n" + "-" * 70)
-
-    print(
-        f"Random Forest: "
-        f"{nombre_experimento}"
-    )
-
+    print(f"CARGANDO: {prefijo}")
     print("-" * 70)
 
+    for esquina in ("typical", "slow", "fast"):
 
-    # ========================================================
-    # RANDOM FOREST SLOW
-    # ========================================================
+        ruta = BASE_DIR / f"{prefijo}_{esquina}.csv"
 
-    modelo_rf_slow = Pipeline(
-        steps=[
+        if not ruta.exists():
+            raise FileNotFoundError(
+                f"No se encontro el archivo:\n{ruta}"
+            )
 
-            (
-                "imputer",
-                SimpleImputer(
-                    strategy="median"
-                ),
-            ),
+        df = pd.read_csv(ruta)
 
-            (
-                "modelo",
-                RandomForestRegressor(
+        df.columns = df.columns.str.strip()
 
-                    n_estimators=trees,
+        archivos[esquina] = df
 
-                    max_depth=depth,
-
-                    min_samples_leaf=leaf,
-
-                    random_state=42,
-
-                    n_jobs=-1,
-
-                ),
-            ),
-
-        ]
-    )
-
-
-    modelo_rf_slow.fit(
-        X_train,
-        y_slow_train,
-    )
-
-
-    pred_rf_slow_train = (
-        modelo_rf_slow.predict(
-            X_train
+        print(
+            f"{ruta.name}: "
+            f"{df.shape[0]:,} filas x {df.shape[1]} columnas"
         )
-    )
 
+    # --------------------------------------------------------
+    # Determinar llaves
+    # --------------------------------------------------------
 
-    pred_rf_slow_validacion = (
-        modelo_rf_slow.predict(
-            X_validacion
-        )
-    )
+    llaves = COLUMNAS_LLAVE.copy()
 
+    # Si los tres archivos tienen Design,
+    # tambien se usa Design como parte de la llave.
+    if all("Design" in df.columns for df in archivos.values()):
+        llaves = ["Design"] + llaves
 
-    resultados.append(
-        crear_resultado(
-            "Random Forest",
-            nombre_experimento,
-            "Train",
-            "Slow",
-            y_slow_train,
-            pred_rf_slow_train,
-        )
-    )
+    print("\nLlaves utilizadas:")
+    for llave in llaves:
+        print(" -", llave)
 
+    # --------------------------------------------------------
+    # Validaciones
+    # --------------------------------------------------------
 
-    resultado_rf_slow_validacion = crear_resultado(
-        "Random Forest",
-        nombre_experimento,
-        "Validacion",
-        "Slow",
-        y_slow_validacion,
-        pred_rf_slow_validacion,
-    )
+    for nombre, df in archivos.items():
 
+        faltantes = set(llaves + ["Delay"]) - set(df.columns)
 
-    resultados.append(
-        resultado_rf_slow_validacion
-    )
+        if faltantes:
+            raise ValueError(
+                f"{nombre}: faltan columnas {faltantes}"
+            )
 
+        if df[llaves].isna().any().any():
+            raise ValueError(
+                f"{nombre}: hay llaves nulas"
+            )
 
-    # ========================================================
-    # RANDOM FOREST FAST
-    # ========================================================
+        if df.duplicated(llaves).any():
+            duplicados = df.duplicated(llaves).sum()
 
-    modelo_rf_fast = Pipeline(
-        steps=[
+            raise ValueError(
+                f"{nombre}: hay {duplicados} llaves duplicadas"
+            )
 
-            (
-                "imputer",
-                SimpleImputer(
-                    strategy="median"
-                ),
-            ),
+    # --------------------------------------------------------
+    # Typical como base
+    # --------------------------------------------------------
 
-            (
-                "modelo",
-                RandomForestRegressor(
-
-                    n_estimators=trees,
-
-                    max_depth=depth,
-
-                    min_samples_leaf=leaf,
-
-                    random_state=42,
-
-                    n_jobs=-1,
-
-                ),
-            ),
-
-        ]
-    )
-
-
-    modelo_rf_fast.fit(
-        X_train,
-        y_fast_train,
-    )
-
-
-    pred_rf_fast_train = (
-        modelo_rf_fast.predict(
-            X_train
-        )
-    )
-
-
-    pred_rf_fast_validacion = (
-        modelo_rf_fast.predict(
-            X_validacion
-        )
-    )
-
-
-    resultados.append(
-        crear_resultado(
-            "Random Forest",
-            nombre_experimento,
-            "Train",
-            "Fast",
-            y_fast_train,
-            pred_rf_fast_train,
-        )
-    )
-
-
-    resultado_rf_fast_validacion = crear_resultado(
-        "Random Forest",
-        nombre_experimento,
-        "Validacion",
-        "Fast",
-        y_fast_validacion,
-        pred_rf_fast_validacion,
-    )
-
-
-    resultados.append(
-        resultado_rf_fast_validacion
-    )
-
-
-    # guardar informacion del experimento
-    resultados_experimentos_rf.append(
-        resultado_rf_slow_validacion
-    )
-
-    resultados_experimentos_rf.append(
-        resultado_rf_fast_validacion
-    )
-
-
-    modelos_rf_validacion[
-        nombre_experimento
-    ] = {
-
-        "slow": modelo_rf_slow,
-
-        "fast": modelo_rf_fast,
-
-        "configuracion": configuracion,
-
-        "pred_slow": pred_rf_slow_validacion,
-
-        "pred_fast": pred_rf_fast_validacion,
-
-    }
-
-
-# ============================================================
-# GRADIENT BOOSTING
-# ============================================================
-
-print("\n" + "=" * 70)
-print("GRADIENT BOOSTING")
-print("=" * 70)
-
-
-gb_experimento = (
-    "trees=100_learning_rate=0.05_depth=3"
-)
-
-
-modelo_gb_slow = Pipeline(
-    steps=[
-
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="median"
-            ),
-        ),
-
-        (
-            "modelo",
-            GradientBoostingRegressor(
-
-                n_estimators=100,
-
-                learning_rate=0.05,
-
-                max_depth=3,
-
-                random_state=42,
-
-            ),
-        ),
-
-    ]
-)
-
-
-modelo_gb_fast = Pipeline(
-    steps=[
-
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="median"
-            ),
-        ),
-
-        (
-            "modelo",
-            GradientBoostingRegressor(
-
-                n_estimators=100,
-
-                learning_rate=0.05,
-
-                max_depth=3,
-
-                random_state=42,
-
-            ),
-        ),
-
-    ]
-)
-
-
-# ------------------------------
-# GB SLOW
-# ------------------------------
-
-modelo_gb_slow.fit(
-    X_train,
-    y_slow_train,
-)
-
-
-pred_gb_slow_train = (
-    modelo_gb_slow.predict(
-        X_train
-    )
-)
-
-
-pred_gb_slow_validacion = (
-    modelo_gb_slow.predict(
-        X_validacion
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Gradient Boosting",
-        gb_experimento,
-        "Train",
-        "Slow",
-        y_slow_train,
-        pred_gb_slow_train,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Gradient Boosting",
-        gb_experimento,
-        "Validacion",
-        "Slow",
-        y_slow_validacion,
-        pred_gb_slow_validacion,
-    )
-)
-
-
-# ------------------------------
-# GB FAST
-# ------------------------------
-
-modelo_gb_fast.fit(
-    X_train,
-    y_fast_train,
-)
-
-
-pred_gb_fast_train = (
-    modelo_gb_fast.predict(
-        X_train
-    )
-)
-
-
-pred_gb_fast_validacion = (
-    modelo_gb_fast.predict(
-        X_validacion
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Gradient Boosting",
-        gb_experimento,
-        "Train",
-        "Fast",
-        y_fast_train,
-        pred_gb_fast_train,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Gradient Boosting",
-        gb_experimento,
-        "Validacion",
-        "Fast",
-        y_fast_validacion,
-        pred_gb_fast_validacion,
-    )
-)
-
-
-# ============================================================
-# RESULTADOS DE VALIDACION
-# ============================================================
-
-resultados_df = pd.DataFrame(
-    resultados
-)
-
-
-print("\n" + "=" * 70)
-print("RESULTADOS DE VALIDACION")
-print("=" * 70)
-
-
-resultados_validacion = resultados_df[
-    resultados_df["Conjunto"] == "Validacion"
-].copy()
-
-
-resultados_validacion = resultados_validacion.sort_values(
-    [
-        "Esquina",
-        "RMSE",
-    ]
-)
-
-
-print(
-    resultados_validacion.to_string(
-        index=False,
-        float_format=lambda x: f"{x:.6f}",
-    )
-)
-
-
-# ============================================================
-# MEJOR RANDOM FOREST
-# ============================================================
-
-print("\n" + "=" * 70)
-print("MEJORES CONFIGURACIONES RANDOM FOREST")
-print("=" * 70)
-
-
-rf_validacion = pd.DataFrame(
-    resultados_experimentos_rf
-)
-
-
-rf_slow = rf_validacion[
-    rf_validacion["Esquina"] == "Slow"
-]
-
-
-rf_fast = rf_validacion[
-    rf_validacion["Esquina"] == "Fast"
-]
-
-
-mejor_slow = rf_slow.loc[
-    rf_slow["RMSE"].idxmin()
-]
-
-
-mejor_fast = rf_fast.loc[
-    rf_fast["RMSE"].idxmin()
-]
-
-
-print("\nSlow:")
-
-print(
-    f"Experimento: "
-    f"{mejor_slow['Experimento']}"
-)
-
-print(
-    f"RMSE: "
-    f"{mejor_slow['RMSE']:.6f}"
-)
-
-print(
-    f"R2: "
-    f"{mejor_slow['R2']:.6f}"
-)
-
-print(
-    f"Pearson: "
-    f"{mejor_slow['Pearson']:.6f}"
-)
-
-
-print("\nFast:")
-
-print(
-    f"Experimento: "
-    f"{mejor_fast['Experimento']}"
-)
-
-print(
-    f"RMSE: "
-    f"{mejor_fast['RMSE']:.6f}"
-)
-
-print(
-    f"R2: "
-    f"{mejor_fast['R2']:.6f}"
-)
-
-print(
-    f"Pearson: "
-    f"{mejor_fast['Pearson']:.6f}"
-)
-
-
-mejor_config_slow = next(
-    configuracion
-    for configuracion in experimentos_rf
-    if (
-        f"trees={configuracion['trees']}"
-        f"_depth={configuracion['depth']}"
-        f"_leaf={configuracion['leaf']}"
-    )
-    == mejor_slow["Experimento"]
-)
-
-
-mejor_config_fast = next(
-    configuracion
-    for configuracion in experimentos_rf
-    if (
-        f"trees={configuracion['trees']}"
-        f"_depth={configuracion['depth']}"
-        f"_leaf={configuracion['leaf']}"
-    )
-    == mejor_fast["Experimento"]
-)
-
-
-# ============================================================
-# CARGAR TEST LABELS
-# ============================================================
-
-print("\n" + "=" * 70)
-print("CARGANDO TEST LABELS")
-print("=" * 70)
-
-
-test_labels_typical = pd.read_csv(
-    TEST_LABELS_TYPICAL
-)
-
-
-test_labels_slow = pd.read_csv(
-    TEST_LABELS_SLOW
-)
-
-
-test_labels_fast = pd.read_csv(
-    TEST_LABELS_FAST
-)
-
-
-print(
-    f"Typical: {test_labels_typical.shape}"
-)
-
-
-print(
-    f"Slow:    {test_labels_slow.shape}"
-)
-
-
-print(
-    f"Fast:    {test_labels_fast.shape}"
-)
-
-
-# ============================================================
-# FUNCION PARA CREAR DATASET MULTICORNER
-# ============================================================
-
-def crear_dataset_multicorner(
-    datos_typical,
-    datos_slow,
-    datos_fast,
-):
-
-    slow_delay = datos_slow[
-        columnas_llave + ["Delay"]
-    ].rename(
-        columns={
-            "Delay": "Delay_Slow"
-        }
-    )
-
-
-    fast_delay = datos_fast[
-        columnas_llave + ["Delay"]
-    ].rename(
-        columns={
-            "Delay": "Delay_Fast"
-        }
-    )
-
-
-    datos = datos_typical.rename(
-        columns={
-            "Delay": "Delay_Typical"
-        }
+    datos = archivos["typical"].rename(
+        columns={"Delay": "Delay_Typical"}
     ).copy()
 
+    # --------------------------------------------------------
+    # Agregar Slow y Fast
+    # --------------------------------------------------------
 
-    datos = datos.merge(
-        slow_delay,
-        on=columnas_llave,
-        how="inner",
-        validate="one_to_one",
+    for nombre in ("slow", "fast"):
+
+        etiqueta = archivos[nombre][
+            llaves + ["Delay"]
+        ].rename(
+            columns={
+                "Delay": f"Delay_{nombre.title()}"
+            }
+        )
+
+        datos = datos.merge(
+            etiqueta,
+            on=llaves,
+            how="left",
+            validate="one_to_one",
+            sort=False,
+            indicator=True,
+        )
+
+        faltantes = (datos["_merge"] != "both").sum()
+
+        datos = datos.drop(columns="_merge")
+
+        if faltantes:
+            raise ValueError(
+                f"{prefijo}: "
+                f"{faltantes} segmentos no tienen "
+                f"correspondencia en {nombre}"
+            )
+
+    # --------------------------------------------------------
+    # Convertir delays a numerico
+    # --------------------------------------------------------
+
+    for esquina in ("Typical", "Slow", "Fast"):
+
+        columna = f"Delay_{esquina}"
+
+        datos[columna] = pd.to_numeric(
+            datos[columna],
+            errors="coerce",
+        )
+
+        if not np.isfinite(datos[columna]).all():
+
+            raise ValueError(
+                f"{prefijo}: {columna} tiene "
+                f"NaN o infinito"
+            )
+
+    # --------------------------------------------------------
+    # Calcular Delta
+    # --------------------------------------------------------
+
+    datos["Delta_Slow"] = (
+        datos["Delay_Slow"]
+        - datos["Delay_Typical"]
     )
 
-
-    datos = datos.merge(
-        fast_delay,
-        on=columnas_llave,
-        how="inner",
-        validate="one_to_one",
+    datos["Delta_Fast"] = (
+        datos["Delay_Fast"]
+        - datos["Delay_Typical"]
     )
 
+    print(
+        f"\nSegmentos alineados: "
+        f"{len(datos):,}"
+    )
 
     return datos
 
 
 # ============================================================
-# CREAR TEST LABELS
+# METRICAS
 # ============================================================
 
-test_labels = crear_dataset_multicorner(
-    test_labels_typical,
-    test_labels_slow,
-    test_labels_fast,
-)
-
-
-print(
-    f"Test Labels final: "
-    f"{test_labels.shape}"
-)
-
-
-# ============================================================
-# CARGAR TEST DESIGNS
-# ============================================================
-
-print("\n" + "=" * 70)
-print("CARGANDO TEST DESIGNS")
-print("=" * 70)
-
-
-test_designs_typical = pd.read_csv(
-    TEST_DESIGNS_TYPICAL
-)
-
-
-test_designs_slow = pd.read_csv(
-    TEST_DESIGNS_SLOW
-)
-
-
-test_designs_fast = pd.read_csv(
-    TEST_DESIGNS_FAST
-)
-
-
-print(
-    f"Typical: {test_designs_typical.shape}"
-)
-
-
-print(
-    f"Slow:    {test_designs_slow.shape}"
-)
-
-
-print(
-    f"Fast:    {test_designs_fast.shape}"
-)
-
-
-# ============================================================
-# CREAR TEST DESIGNS
-# ============================================================
-
-test_designs = crear_dataset_multicorner(
-    test_designs_typical,
-    test_designs_slow,
-    test_designs_fast,
-)
-
-
-print(
-    f"Test Designs final: "
-    f"{test_designs.shape}"
-)
-
-
-# ============================================================
-# PREPARAR TEST LABELS
-# ============================================================
-
-X_test_labels = test_labels[
-    columnas_features
-].copy()
-
-
-X_test_labels = X_test_labels.apply(
-    pd.to_numeric,
-    errors="coerce",
-)
-
-
-y_test_labels_slow = test_labels[
-    "Delay_Slow"
-]
-
-
-y_test_labels_fast = test_labels[
-    "Delay_Fast"
-]
-
-
-# ============================================================
-# PREPARAR TEST DESIGNS
-# ============================================================
-
-X_test_designs = test_designs[
-    columnas_features
-].copy()
-
-
-X_test_designs = X_test_designs.apply(
-    pd.to_numeric,
-    errors="coerce",
-)
-
-
-y_test_designs_slow = test_designs[
-    "Delay_Slow"
-]
-
-
-y_test_designs_fast = test_designs[
-    "Delay_Fast"
-]
-
-
-# ============================================================
-# BASELINE EN TEST
-# ============================================================
-
-print("\n" + "=" * 70)
-print("BASELINE EN TEST LABELS Y TEST DESIGNS")
-print("=" * 70)
-
-
-# ============================================================
-# TEST LABELS
-# ============================================================
-
-baseline_test_labels_slow = (
-    test_labels["Delay_Typical"].values
-)
-
-
-baseline_test_labels_fast = (
-    test_labels["Delay_Typical"].values
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Baseline",
-        "Typical como prediccion",
-        "Test Labels",
-        "Slow",
-        y_test_labels_slow,
-        baseline_test_labels_slow,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Baseline",
-        "Typical como prediccion",
-        "Test Labels",
-        "Fast",
-        y_test_labels_fast,
-        baseline_test_labels_fast,
-    )
-)
-
-
-# ============================================================
-# TEST DESIGNS
-# ============================================================
-
-baseline_test_designs_slow = (
-    test_designs["Delay_Typical"].values
-)
-
-
-baseline_test_designs_fast = (
-    test_designs["Delay_Typical"].values
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Baseline",
-        "Typical como prediccion",
-        "Test Designs",
-        "Slow",
-        y_test_designs_slow,
-        baseline_test_designs_slow,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Baseline",
-        "Typical como prediccion",
-        "Test Designs",
-        "Fast",
-        y_test_designs_fast,
-        baseline_test_designs_fast,
-    )
-)
-
-
-# ============================================================
-# RIDGE FINAL
-# ============================================================
-
-print("\n" + "=" * 70)
-print("RIDGE FINAL")
-print("=" * 70)
-
-
-modelo_ridge_final_slow = Pipeline(
-    steps=[
-
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="median"
-            ),
+def metricas(y_real, y_pred):
+
+    y_real = np.asarray(y_real, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+
+    if not np.isfinite(y_real).all():
+        raise ValueError(
+            "Hay valores no finitos en y_real"
+        )
+
+    if not np.isfinite(y_pred).all():
+        raise ValueError(
+            "Hay valores no finitos en y_pred"
+        )
+
+    pearson = np.nan
+
+    if (
+        len(y_real) > 1
+        and np.std(y_real) > 0
+        and np.std(y_pred) > 0
+    ):
+        pearson = np.corrcoef(
+            y_real,
+            y_pred
+        )[0, 1]
+
+    return {
+        "MAE": mean_absolute_error(
+            y_real,
+            y_pred
         ),
 
-        (
-            "scaler",
-            StandardScaler(),
+        "RMSE": np.sqrt(
+            mean_squared_error(
+                y_real,
+                y_pred
+            )
         ),
 
-        (
-            "modelo",
-            Ridge(
-                alpha=1.0
-            ),
+        "R2": r2_score(
+            y_real,
+            y_pred
         ),
 
-    ]
-)
-
-
-modelo_ridge_final_fast = Pipeline(
-    steps=[
-
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="median"
-            ),
-        ),
-
-        (
-            "scaler",
-            StandardScaler(),
-        ),
-
-        (
-            "modelo",
-            Ridge(
-                alpha=1.0
-            ),
-        ),
-
-    ]
-)
-
-
-modelo_ridge_final_slow.fit(
-    X,
-    y_slow,
-)
-
-
-modelo_ridge_final_fast.fit(
-    X,
-    y_fast,
-)
+        "Pearson": pearson,
+    }
 
 
 # ============================================================
-# RIDGE TEST LABELS
+# REGISTRAR RESULTADOS
 # ============================================================
 
-pred_ridge_labels_slow = (
-    modelo_ridge_final_slow.predict(
-        X_test_labels
-    )
-)
-
-
-pred_ridge_labels_fast = (
-    modelo_ridge_final_fast.predict(
-        X_test_labels
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Ridge",
-        "alpha=1.0",
-        "Test Labels",
-        "Slow",
-        y_test_labels_slow,
-        pred_ridge_labels_slow,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Ridge",
-        "alpha=1.0",
-        "Test Labels",
-        "Fast",
-        y_test_labels_fast,
-        pred_ridge_labels_fast,
-    )
-)
-
-
-# ============================================================
-# RIDGE TEST DESIGNS
-# ============================================================
-
-pred_ridge_designs_slow = (
-    modelo_ridge_final_slow.predict(
-        X_test_designs
-    )
-)
-
-
-pred_ridge_designs_fast = (
-    modelo_ridge_final_fast.predict(
-        X_test_designs
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Ridge",
-        "alpha=1.0",
-        "Test Designs",
-        "Slow",
-        y_test_designs_slow,
-        pred_ridge_designs_slow,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Ridge",
-        "alpha=1.0",
-        "Test Designs",
-        "Fast",
-        y_test_designs_fast,
-        pred_ridge_designs_fast,
-    )
-)
-
-
-# ============================================================
-# RANDOM FOREST FINAL
-# ============================================================
-
-print("\n" + "=" * 70)
-print("RANDOM FOREST FINAL")
-print("=" * 70)
-
-
-print(
-    "\nConfiguracion Slow:"
-)
-
-print(
-    mejor_config_slow
-)
-
-
-print(
-    "\nConfiguracion Fast:"
-)
-
-print(
-    mejor_config_fast
-)
-
-
-modelo_final_slow = Pipeline(
-    steps=[
-
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="median"
-            ),
-        ),
-
-        (
-            "modelo",
-            RandomForestRegressor(
-
-                n_estimators=mejor_config_slow[
-                    "trees"
-                ],
-
-                max_depth=mejor_config_slow[
-                    "depth"
-                ],
-
-                min_samples_leaf=mejor_config_slow[
-                    "leaf"
-                ],
-
-                random_state=42,
-
-                n_jobs=-1,
-
-            ),
-        ),
-
-    ]
-)
-
-
-modelo_final_fast = Pipeline(
-    steps=[
-
-        (
-            "imputer",
-            SimpleImputer(
-                strategy="median"
-            ),
-        ),
-
-        (
-            "modelo",
-            RandomForestRegressor(
-
-                n_estimators=mejor_config_fast[
-                    "trees"
-                ],
-
-                max_depth=mejor_config_fast[
-                    "depth"
-                ],
-
-                min_samples_leaf=mejor_config_fast[
-                    "leaf"
-                ],
-
-                random_state=42,
-
-                n_jobs=-1,
-
-            ),
-        ),
-
-    ]
-)
-
-
-# ============================================================
-# ENTRENAR CON TODO TRAIN
-# ============================================================
-
-modelo_final_slow.fit(
-    X,
-    y_slow,
-)
-
-
-modelo_final_fast.fit(
-    X,
-    y_fast,
-)
-
-
-# ============================================================
-# EVALUAR RANDOM FOREST EN TRAIN
-# ============================================================
-
-pred_final_train_slow = (
-    modelo_final_slow.predict(
-        X
-    )
-)
-
-
-pred_final_train_fast = (
-    modelo_final_fast.predict(
-        X
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Random Forest",
-        mejor_slow["Experimento"],
-        "Train",
-        "Slow",
-        y_slow,
-        pred_final_train_slow,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Random Forest",
-        mejor_fast["Experimento"],
-        "Train",
-        "Fast",
-        y_fast,
-        pred_final_train_fast,
-    )
-)
-
-
-# ============================================================
-# RANDOM FOREST TEST LABELS
-# ============================================================
-
-pred_rf_labels_slow = (
-    modelo_final_slow.predict(
-        X_test_labels
-    )
-)
-
-
-pred_rf_labels_fast = (
-    modelo_final_fast.predict(
-        X_test_labels
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Random Forest",
-        mejor_slow["Experimento"],
-        "Test Labels",
-        "Slow",
-        y_test_labels_slow,
-        pred_rf_labels_slow,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Random Forest",
-        mejor_fast["Experimento"],
-        "Test Labels",
-        "Fast",
-        y_test_labels_fast,
-        pred_rf_labels_fast,
-    )
-)
-
-
-# ============================================================
-# RANDOM FOREST TEST DESIGNS
-# ============================================================
-
-pred_rf_designs_slow = (
-    modelo_final_slow.predict(
-        X_test_designs
-    )
-)
-
-
-pred_rf_designs_fast = (
-    modelo_final_fast.predict(
-        X_test_designs
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Random Forest",
-        mejor_slow["Experimento"],
-        "Test Designs",
-        "Slow",
-        y_test_designs_slow,
-        pred_rf_designs_slow,
-    )
-)
-
-
-resultados.append(
-    crear_resultado(
-        "Random Forest",
-        mejor_fast["Experimento"],
-        "Test Designs",
-        "Fast",
-        y_test_designs_fast,
-        pred_rf_designs_fast,
-    )
-)
-
-
-# ============================================================
-# TABLA FINAL
-# ============================================================
-
-resultados_completos = pd.DataFrame(
-    resultados
-)
-
-
-print("\n" + "=" * 70)
-print("TABLA FINAL DE RESULTADOS")
-print("=" * 70)
-
-
-print(
-    resultados_completos.to_string(
-        index=False,
-        float_format=lambda x: f"{x:.6f}",
-    )
-)
-
-
-# ============================================================
-# GUARDAR METRICAS
-# ============================================================
-
-ruta_metricas = (
-    RESULTS_DIR
-    / "metricas_objetivo3.csv"
-)
-
-
-resultados_completos.to_csv(
-    ruta_metricas,
-    index=False,
-)
-
-
-# ============================================================
-# GUARDAR EXPERIMENTOS RANDOM FOREST
-# ============================================================
-
-ruta_experimentos = (
-    RESULTS_DIR
-    / "experimentos_random_forest.csv"
-)
-
-
-pd.DataFrame(
-    resultados_experimentos_rf
-).to_csv(
-    ruta_experimentos,
-    index=False,
-)
-
-
-# ============================================================
-# GUARDAR PREDICCIONES TEST LABELS
-# ============================================================
-
-predicciones_test_labels = test_labels[
-    [
-        "row_id",
-        "Delay_Typical",
-        "Delay_Slow",
-        "Delay_Fast",
-    ]
-].copy()
-
-
-predicciones_test_labels[
-    "Baseline_Slow"
-] = baseline_test_labels_slow
-
-
-predicciones_test_labels[
-    "Baseline_Fast"
-] = baseline_test_labels_fast
-
-
-predicciones_test_labels[
-    "Predicted_Ridge_Slow"
-] = pred_ridge_labels_slow
-
-
-predicciones_test_labels[
-    "Predicted_Ridge_Fast"
-] = pred_ridge_labels_fast
-
-
-predicciones_test_labels[
-    "Predicted_RF_Slow"
-] = pred_rf_labels_slow
-
-
-predicciones_test_labels[
-    "Predicted_RF_Fast"
-] = pred_rf_labels_fast
-
-
-ruta_predicciones_labels = (
-    RESULTS_DIR
-    / "predicciones_test_labels.csv"
-)
-
-
-predicciones_test_labels.to_csv(
-    ruta_predicciones_labels,
-    index=False,
-)
-
-
-# ============================================================
-# GUARDAR PREDICCIONES TEST DESIGNS
-# ============================================================
-
-predicciones_test_designs = test_designs[
-    [
-        "row_id",
-        "Delay_Typical",
-        "Delay_Slow",
-        "Delay_Fast",
-    ]
-].copy()
-
-
-predicciones_test_designs[
-    "Baseline_Slow"
-] = baseline_test_designs_slow
-
-
-predicciones_test_designs[
-    "Baseline_Fast"
-] = baseline_test_designs_fast
-
-
-predicciones_test_designs[
-    "Predicted_Ridge_Slow"
-] = pred_ridge_designs_slow
-
-
-predicciones_test_designs[
-    "Predicted_Ridge_Fast"
-] = pred_ridge_designs_fast
-
-
-predicciones_test_designs[
-    "Predicted_RF_Slow"
-] = pred_rf_designs_slow
-
-
-predicciones_test_designs[
-    "Predicted_RF_Fast"
-] = pred_rf_designs_fast
-
-
-ruta_predicciones_designs = (
-    RESULTS_DIR
-    / "predicciones_test_designs.csv"
-)
-
-
-predicciones_test_designs.to_csv(
-    ruta_predicciones_designs,
-    index=False,
-)
-
-
-# ============================================================
-# GRAFICA:
-# TYPICAL VS SLOW REAL
-# ============================================================
-
-print("\n" + "=" * 70)
-print("GENERANDO GRAFICAS")
-print("=" * 70)
-
-
-def guardar_grafica_comparacion(
-    x,
-    y,
-    titulo,
-    xlabel,
-    ylabel,
-    nombre_archivo,
+def registrar(
+    resultados,
+    modelo,
+    experimento,
+    objetivo,
+    conjunto,
+    esquina,
+    y_real,
+    y_pred,
+    n_entrenamiento=None,
+    metrica_evaluada="Delay",
 ):
 
-    plt.figure(
+    resultados.append({
+
+        "Modelo": modelo,
+
+        "Experimento": experimento,
+
+        "Objetivo": objetivo,
+
+        "Conjunto": conjunto,
+
+        "Esquina": esquina,
+
+        "Metrica_evaluada": metrica_evaluada,
+
+        "N_entrenamiento": n_entrenamiento,
+
+        "N_evaluacion": len(y_real),
+
+        **metricas(
+            y_real,
+            y_pred
+        ),
+    })
+
+
+# ============================================================
+# CREAR MODELO
+# ============================================================
+
+def crear_modelo(nombre, parametros):
+
+    if nombre == "Ridge":
+
+        pasos = [
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                )
+            ),
+
+            (
+                "scaler",
+                StandardScaler()
+            ),
+
+            (
+                "modelo",
+                Ridge(**parametros)
+            ),
+        ]
+
+    elif nombre == "SVR":
+
+        pasos = [
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                )
+            ),
+
+            (
+                "scaler",
+                StandardScaler()
+            ),
+
+            (
+                "modelo",
+                SVR(**parametros)
+            ),
+        ]
+
+    elif nombre == "Random Forest":
+
+        pasos = [
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                )
+            ),
+
+            (
+                "modelo",
+                RandomForestRegressor(
+                    random_state=RANDOM_STATE,
+                    n_jobs=-1,
+                    **parametros
+                )
+            ),
+        ]
+
+    elif nombre == "Gradient Boosting":
+
+        pasos = [
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                )
+            ),
+
+            (
+                "modelo",
+                GradientBoostingRegressor(
+                    random_state=RANDOM_STATE,
+                    **parametros
+                )
+            ),
+        ]
+
+    elif nombre == "Hist Gradient Boosting":
+
+        pasos = [
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                )
+            ),
+
+            (
+                "modelo",
+                HistGradientBoostingRegressor(
+                    random_state=RANDOM_STATE,
+                    **parametros
+                )
+            ),
+        ]
+
+    elif nombre == "XGBoost":
+
+        pasos = [
+            (
+                "imputer",
+                SimpleImputer(
+                    strategy="median"
+                )
+            ),
+
+            (
+                "modelo",
+                XGBRegressor(
+                    objective="reg:squarederror",
+                    random_state=RANDOM_STATE,
+                    n_jobs=-1,
+                    tree_method="hist",
+                    **parametros
+                )
+            ),
+        ]
+
+    else:
+
+        raise ValueError(
+            f"Modelo desconocido: {nombre}"
+        )
+
+    return Pipeline(pasos)
+
+
+# ============================================================
+# EXPERIMENTOS
+# ============================================================
+
+def crear_experimentos():
+
+    experimentos = []
+
+    # --------------------------------------------------------
+    # RIDGE
+    # --------------------------------------------------------
+
+    experimentos.append(
+        (
+            "Ridge",
+            {
+                "alpha": 1.0
+            }
+        )
+    )
+
+    # --------------------------------------------------------
+    # GRADIENT BOOSTING
+    # --------------------------------------------------------
+
+    experimentos.append(
+        (
+            "Gradient Boosting",
+            {
+                "n_estimators": 100,
+                "learning_rate": 0.05,
+                "max_depth": 3,
+            }
+        )
+    )
+
+    # --------------------------------------------------------
+    # HIST GRADIENT BOOSTING
+    # --------------------------------------------------------
+
+    experimentos.append(
+        (
+            "Hist Gradient Boosting",
+            {
+                "max_iter": 200,
+                "learning_rate": 0.05,
+                "max_leaf_nodes": 31,
+            }
+        )
+    )
+
+    # --------------------------------------------------------
+    # SVR
+    # --------------------------------------------------------
+
+    experimentos.append(
+        (
+            "SVR",
+            {
+                "kernel": "rbf",
+                "C": 1.0,
+                "epsilon": 0.1,
+            }
+        )
+    )
+
+    # --------------------------------------------------------
+    # RANDOM FOREST - CANTIDAD DE ARBOLES
+    # --------------------------------------------------------
+
+    for n in (
+        10,
+        50,
+        100,
+        200,
+        300,
+        500,
+    ):
+
+        experimentos.append(
+            (
+                "Random Forest",
+                {
+                    "n_estimators": n,
+                    "max_depth": 20,
+                    "min_samples_leaf": 2,
+                }
+            )
+        )
+
+    # --------------------------------------------------------
+    # RANDOM FOREST - PROFUNDIDAD
+    # --------------------------------------------------------
+
+    for profundidad in (
+        10,
+        30,
+        None,
+    ):
+
+        experimentos.append(
+            (
+                "Random Forest",
+                {
+                    "n_estimators": 100,
+                    "max_depth": profundidad,
+                    "min_samples_leaf": 2,
+                }
+            )
+        )
+
+    # --------------------------------------------------------
+    # RANDOM FOREST - MIN SAMPLES LEAF
+    # --------------------------------------------------------
+
+    for hoja in (
+        1,
+        4,
+    ):
+
+        experimentos.append(
+            (
+                "Random Forest",
+                {
+                    "n_estimators": 100,
+                    "max_depth": 20,
+                    "min_samples_leaf": hoja,
+                }
+            )
+        )
+
+    # --------------------------------------------------------
+    # XGBOOST - CANTIDAD DE ARBOLES
+    # --------------------------------------------------------
+
+    for n in (
+        100,
+        200,
+        300,
+        500,
+    ):
+
+        experimentos.append(
+            (
+                "XGBoost",
+                {
+                    "n_estimators": n,
+                    "max_depth": 5,
+                    "learning_rate": 0.05,
+                    "subsample": 0.9,
+                    "colsample_bytree": 0.9,
+                }
+            )
+        )
+
+    return experimentos
+
+
+# ============================================================
+# PREPARAR FEATURES
+# ============================================================
+
+def preparar_X(
+    datos,
+    columnas_features
+):
+
+    faltantes = (
+        set(columnas_features)
+        - set(datos.columns)
+    )
+
+    if faltantes:
+
+        raise ValueError(
+            f"Faltan variables: {faltantes}"
+        )
+
+    X = datos[
+        columnas_features
+    ].apply(
+        pd.to_numeric,
+        errors="coerce"
+    )
+
+    X = X.replace(
+        [np.inf, -np.inf],
+        np.nan
+    )
+
+    if X.isna().all().any():
+
+        columnas_vacias = (
+            X.columns[
+                X.isna().all()
+            ].tolist()
+        )
+
+        raise ValueError(
+            "Variables completamente vacias: "
+            f"{columnas_vacias}"
+        )
+
+    return X
+
+
+# ============================================================
+# PREDICCION DEL TARGET
+# ============================================================
+
+def predecir_target(
+    modelo,
+    X
+):
+
+    return modelo.predict(X)
+
+
+# ============================================================
+# PREDICCION DEL DELAY FINAL
+# ============================================================
+
+def predecir_delay(
+    modelo,
+    X,
+    objetivo
+):
+
+    pred = modelo.predict(X)
+
+    if objetivo == "Delta":
+
+        pred = (
+            X["Delay_Typical"].to_numpy()
+            + pred
+        )
+
+    return pred
+
+
+# ============================================================
+# GRAFICA REAL VS PREDICHO
+# ============================================================
+
+def guardar_grafica(
+    y_real,
+    y_pred,
+    titulo,
+    ruta,
+    xlabel="Delay real",
+    ylabel="Delay predicho",
+):
+
+    y_real = np.asarray(
+        y_real,
+        dtype=float
+    )
+
+    y_pred = np.asarray(
+        y_pred,
+        dtype=float
+    )
+
+    rng = np.random.default_rng(
+        RANDOM_STATE
+    )
+
+    cantidad = min(
+        len(y_real),
+        PLOT_MAX_POINTS
+    )
+
+    idx = rng.choice(
+        len(y_real),
+        size=cantidad,
+        replace=False,
+    )
+
+    lo = min(
+        y_real.min(),
+        y_pred.min()
+    )
+
+    hi = max(
+        y_real.max(),
+        y_pred.max()
+    )
+
+    fig, ax = plt.subplots(
         figsize=(8, 7)
     )
 
-    plt.scatter(
-        x,
-        y,
+    ax.scatter(
+        y_real[idx],
+        y_pred[idx],
         s=8,
-        alpha=0.35,
-    )
-
-
-    minimo = min(
-        np.nanmin(x),
-        np.nanmin(y),
-    )
-
-
-    maximo = max(
-        np.nanmax(x),
-        np.nanmax(y),
-    )
-
-
-    plt.plot(
-        [minimo, maximo],
-        [minimo, maximo],
-        linestyle="--",
-        linewidth=2,
-    )
-
-
-    plt.xlabel(
-        xlabel
-    )
-
-    plt.ylabel(
-        ylabel
-    )
-
-    plt.title(
-        titulo
-    )
-
-    plt.grid(
-        True,
         alpha=0.3,
     )
 
-    plt.tight_layout()
-
-
-    ruta = (
-        GRAFICAS_DIR
-        / nombre_archivo
+    # linea ideal y = x
+    ax.plot(
+        [lo, hi],
+        [lo, hi],
+        "--",
+        color="black",
+        linewidth=1.5,
     )
 
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(titulo)
 
-    plt.savefig(
+    ax.grid(
+        alpha=0.3
+    )
+
+    fig.tight_layout()
+
+    fig.savefig(
         ruta,
-        dpi=200,
+        dpi=180
     )
 
-
-    plt.close()
-
-
-# ============================================================
-# BASELINE: TYPICAL VS SLOW
-# ============================================================
-
-guardar_grafica_comparacion(
-
-    test_designs["Delay_Typical"],
-
-    test_designs["Delay_Slow"],
-
-    "Delay Typical vs Delay Slow",
-
-    "Delay Typical",
-
-    "Delay Slow real",
-
-    "01_typical_vs_slow_real.png",
-
-)
+    plt.close(fig)
 
 
 # ============================================================
-# BASELINE: TYPICAL VS FAST
+# GRAFICA BASELINE
+# Typical vs real Slow/Fast
 # ============================================================
 
-guardar_grafica_comparacion(
+def guardar_grafica_baseline(
+    y_typical,
+    y_real,
+    esquina,
+    conjunto,
+    ruta,
+):
 
-    test_designs["Delay_Typical"],
+    y_typical = np.asarray(
+        y_typical,
+        dtype=float
+    )
 
-    test_designs["Delay_Fast"],
+    y_real = np.asarray(
+        y_real,
+        dtype=float
+    )
 
-    "Delay Typical vs Delay Fast",
+    rng = np.random.default_rng(
+        RANDOM_STATE
+    )
 
-    "Delay Typical",
+    cantidad = min(
+        len(y_real),
+        PLOT_MAX_POINTS
+    )
 
-    "Delay Fast real",
+    idx = rng.choice(
+        len(y_real),
+        size=cantidad,
+        replace=False,
+    )
 
-    "02_typical_vs_fast_real.png",
+    lo = min(
+        y_typical.min(),
+        y_real.min()
+    )
 
-)
+    hi = max(
+        y_typical.max(),
+        y_real.max()
+    )
 
+    fig, ax = plt.subplots(
+        figsize=(8, 7)
+    )
 
-# ============================================================
-# PREDICCION VS REAL
-# ============================================================
+    ax.scatter(
+        y_typical[idx],
+        y_real[idx],
+        s=8,
+        alpha=0.3,
+    )
 
-guardar_grafica_comparacion(
+    ax.plot(
+        [lo, hi],
+        [lo, hi],
+        "--",
+        color="black",
+        linewidth=1.5,
+    )
 
-    y_test_designs_slow,
+    ax.set_xlabel(
+        "Delay Typical"
+    )
 
-    pred_rf_designs_slow,
+    ax.set_ylabel(
+        f"Delay {esquina} real"
+    )
 
-    "Random Forest: Slow predicho vs Slow real",
+    ax.set_title(
+        f"{conjunto}: Typical vs {esquina}"
+    )
 
-    "Slow real",
+    ax.grid(
+        alpha=0.3
+    )
 
-    "Slow predicho",
+    fig.tight_layout()
 
-    "03_random_forest_slow_predicho_vs_real.png",
+    fig.savefig(
+        ruta,
+        dpi=180
+    )
 
-)
-
-
-guardar_grafica_comparacion(
-
-    y_test_designs_fast,
-
-    pred_rf_designs_fast,
-
-    "Random Forest: Fast predicho vs Fast real",
-
-    "Fast real",
-
-    "Fast predicho",
-
-    "04_random_forest_fast_predicho_vs_real.png",
-
-)
-
-
-# ============================================================
-# BASELINE VS RANDOM FOREST
-# TEST DESIGNS - SLOW
-# ============================================================
-
-plt.figure(
-    figsize=(8, 7)
-)
-
-
-plt.scatter(
-    y_test_designs_slow,
-    baseline_test_designs_slow,
-    s=8,
-    alpha=0.25,
-    label="Baseline",
-)
-
-
-plt.scatter(
-    y_test_designs_slow,
-    pred_rf_designs_slow,
-    s=8,
-    alpha=0.25,
-    label="Random Forest",
-)
-
-
-minimo = min(
-    np.nanmin(y_test_designs_slow),
-    np.nanmin(baseline_test_designs_slow),
-    np.nanmin(pred_rf_designs_slow),
-)
-
-
-maximo = max(
-    np.nanmax(y_test_designs_slow),
-    np.nanmax(baseline_test_designs_slow),
-    np.nanmax(pred_rf_designs_slow),
-)
-
-
-plt.plot(
-    [minimo, maximo],
-    [minimo, maximo],
-    linestyle="--",
-    linewidth=2,
-)
-
-
-plt.xlabel(
-    "Slow real"
-)
-
-plt.ylabel(
-    "Valor predicho"
-)
-
-plt.title(
-    "Baseline vs Random Forest - Slow"
-)
-
-plt.legend()
-
-plt.grid(
-    True,
-    alpha=0.3,
-)
-
-plt.tight_layout()
-
-
-plt.savefig(
-    GRAFICAS_DIR
-    / "05_baseline_vs_random_forest_slow.png",
-    dpi=200,
-)
-
-
-plt.close()
+    plt.close(fig)
 
 
 # ============================================================
-# BASELINE VS RANDOM FOREST
-# TEST DESIGNS - FAST
+# GRAFICA IMPORTANCIA
 # ============================================================
 
-plt.figure(
-    figsize=(8, 7)
-)
+def guardar_importancias(
+    datos,
+    ruta,
+    titulo,
+):
 
+    datos = datos.sort_values(
+        "Importancia",
+        ascending=True
+    )
 
-plt.scatter(
-    y_test_designs_fast,
-    baseline_test_designs_fast,
-    s=8,
-    alpha=0.25,
-    label="Baseline",
-)
+    fig, ax = plt.subplots(
+        figsize=(10, 7)
+    )
 
+    ax.barh(
+        datos["Feature"],
+        datos["Importancia"]
+    )
 
-plt.scatter(
-    y_test_designs_fast,
-    pred_rf_designs_fast,
-    s=8,
-    alpha=0.25,
-    label="Random Forest",
-)
+    ax.set_xlabel(
+        "Importancia relativa"
+    )
 
+    ax.set_title(
+        titulo
+    )
 
-minimo = min(
-    np.nanmin(y_test_designs_fast),
-    np.nanmin(baseline_test_designs_fast),
-    np.nanmin(pred_rf_designs_fast),
-)
+    fig.tight_layout()
 
+    fig.savefig(
+        ruta,
+        dpi=180
+    )
 
-maximo = max(
-    np.nanmax(y_test_designs_fast),
-    np.nanmax(baseline_test_designs_fast),
-    np.nanmax(pred_rf_designs_fast),
-)
-
-
-plt.plot(
-    [minimo, maximo],
-    [minimo, maximo],
-    linestyle="--",
-    linewidth=2,
-)
-
-
-plt.xlabel(
-    "Fast real"
-)
-
-plt.ylabel(
-    "Valor predicho"
-)
-
-plt.title(
-    "Baseline vs Random Forest - Fast"
-)
-
-plt.legend()
-
-plt.grid(
-    True,
-    alpha=0.3,
-)
-
-plt.tight_layout()
-
-
-plt.savefig(
-    GRAFICAS_DIR
-    / "06_baseline_vs_random_forest_fast.png",
-    dpi=200,
-)
-
-
-plt.close()
+    plt.close(fig)
 
 
 # ============================================================
-# GRAFICAS DE TEST LABELS
+# DIAGNOSTICO DE DELTAS
 # ============================================================
 
-guardar_grafica_comparacion(
+def diagnostico_deltas(
+    train,
+    test_labels,
+    test_designs,
+):
 
-    y_test_labels_slow,
+    filas = []
 
-    pred_rf_labels_slow,
+    conjuntos = [
+        ("Train", train),
+        ("Test Labels", test_labels),
+        ("Test Designs", test_designs),
+    ]
 
-    "Random Forest: Test Labels - Slow",
+    for nombre, datos in conjuntos:
 
-    "Slow real",
+        for esquina in (
+            "Slow",
+            "Fast",
+        ):
 
-    "Slow predicho",
+            delta = datos[
+                f"Delta_{esquina}"
+            ].to_numpy(float)
 
-    "07_test_labels_slow_predicho_vs_real.png",
+            filas.append({
 
-)
+                "Conjunto": nombre,
 
+                "Esquina": esquina,
 
-guardar_grafica_comparacion(
+                "N": len(delta),
 
-    y_test_labels_fast,
+                "Media_Delta": np.mean(delta),
 
-    pred_rf_labels_fast,
+                "Desv_Delta": np.std(delta),
 
-    "Random Forest: Test Labels - Fast",
+                "Min_Delta": np.min(delta),
 
-    "Fast real",
+                "Mediana_Delta": np.median(delta),
 
-    "Fast predicho",
+                "Max_Delta": np.max(delta),
 
-    "08_test_labels_fast_predicho_vs_real.png",
+                # Baseline Delta = 0
+                "RMSE_Delta_baseline": np.sqrt(
+                    np.mean(delta ** 2)
+                ),
+            })
 
-)
+    df = pd.DataFrame(filas)
 
+    df.to_csv(
+        RESULTS_DIR
+        / "diagnostico_distribucion_delta.csv",
+        index=False,
+    )
 
-# ============================================================
-# GUARDAR MODELOS
-# ============================================================
-
-joblib.dump(
-    modelo_final_slow,
-    RESULTS_DIR
-    / "modelo_random_forest_slow.joblib",
-)
-
-
-joblib.dump(
-    modelo_final_fast,
-    RESULTS_DIR
-    / "modelo_random_forest_fast.joblib",
-)
-
-
-joblib.dump(
-    modelo_ridge_final_slow,
-    RESULTS_DIR
-    / "modelo_ridge_slow.joblib",
-)
-
-
-joblib.dump(
-    modelo_ridge_final_fast,
-    RESULTS_DIR
-    / "modelo_ridge_fast.joblib",
-)
+    return df
 
 
 # ============================================================
-# RESUMEN FINAL
+# IMPORTANCIA DE VARIABLES
 # ============================================================
 
-print("\n" + "=" * 70)
-print("ARCHIVOS GENERADOS")
-print("=" * 70)
+def obtener_importancias(
+    modelo,
+    columnas_features,
+):
+
+    if "modelo" not in modelo.named_steps:
+        return None
+
+    estimador = (
+        modelo.named_steps["modelo"]
+    )
+
+    if not hasattr(
+        estimador,
+        "feature_importances_"
+    ):
+        return None
+
+    valores = (
+        estimador.feature_importances_
+    )
+
+    if len(valores) != len(
+        columnas_features
+    ):
+        raise ValueError(
+            "La cantidad de importancias "
+            "no coincide con las features."
+        )
+
+    df = pd.DataFrame({
+
+        "Feature": columnas_features,
+
+        "Importancia": valores,
+    })
+
+    df = df.sort_values(
+        "Importancia",
+        ascending=False
+    ).reset_index(drop=True)
+
+    return df
 
 
-print("\nMetricas:")
+# ============================================================
+# CREAR IMPORTANCIA RF
+# ============================================================
 
-print(
-    ruta_metricas
-)
+def registrar_importancias(
+    importancias,
+    df_importancia,
+    esquina,
+    objetivo,
+    modelo_nombre,
+    experimento,
+):
 
+    if df_importancia is None:
+        return
 
-print("\nExperimentos Random Forest:")
+    for _, fila in (
+        df_importancia.iterrows()
+    ):
 
-print(
-    ruta_experimentos
-)
+        importancias.append({
 
+            "Esquina": esquina,
 
-print("\nPredicciones Test Labels:")
+            "Objetivo": objetivo,
 
-print(
-    ruta_predicciones_labels
-)
+            "Modelo": modelo_nombre,
 
+            "Experimento": experimento,
 
-print("\nPredicciones Test Designs:")
+            "Feature": fila["Feature"],
 
-print(
-    ruta_predicciones_designs
-)
-
-
-print("\nGraficas:")
-
-print(
-    GRAFICAS_DIR
-)
-
-
-print("\nModelos:")
-
-print(
-    RESULTS_DIR
-)
+            "Importancia": fila["Importancia"],
+        })
 
 
-print("\n" + "=" * 70)
-print("PROCESO TERMINADO")
-print("=" * 70)
+# ============================================================
+# MAIN
+# ============================================================
+
+def main():
+
+    print("\n" + "=" * 70)
+    print(
+        "OBJETIVO 3 - "
+        "MACHINE LEARNING MULTICORNER"
+    )
+    print("=" * 70)
+
+    # ========================================================
+    # CARGAR DATOS
+    # ========================================================
+
+    print("\nCARGANDO TRAIN")
+
+    train = cargar_multicorner(
+        "treated_labels_train"
+    )
+
+    print("\nCARGANDO TEST LABELS")
+
+    test_labels = cargar_multicorner(
+        "treated_labels"
+    )
+
+    print("\nCARGANDO TEST DESIGNS")
+
+    test_designs = cargar_multicorner(
+        "treated_test_designs"
+    )
+
+    conjuntos_test = {
+
+        "Test Labels": test_labels,
+
+        "Test Designs": test_designs,
+    }
+
+    # ========================================================
+    # DIAGNOSTICO DELTA
+    # ========================================================
+
+    print("\n" + "=" * 70)
+    print("DIAGNOSTICO DE DELTAS")
+    print("=" * 70)
+
+    diagnostico = diagnostico_deltas(
+        train,
+        test_labels,
+        test_designs,
+    )
+
+    print(
+        diagnostico.to_string(
+            index=False,
+            float_format=lambda x:
+            f"{x:.6f}"
+        )
+    )
+
+    # ========================================================
+    # FEATURES
+    # ========================================================
+
+    columnas_features = [
+        c
+        for c in train.columns
+        if c not in COLUMNAS_EXCLUIR
+    ]
+
+    if (
+        "Delay_Typical"
+        not in columnas_features
+    ):
+
+        raise ValueError(
+            "Delay_Typical debe ser "
+            "una variable de entrada."
+        )
+
+    print("\n" + "=" * 70)
+    print("VARIABLES UTILIZADAS")
+    print("=" * 70)
+
+    for numero, columna in enumerate(
+        columnas_features,
+        start=1
+    ):
+
+        print(
+            f"{numero:2d}. {columna}"
+        )
+
+    print(
+        "\nTotal de features:",
+        len(columnas_features)
+    )
+
+    pd.DataFrame({
+
+        "Feature": columnas_features
+
+    }).to_csv(
+        RESULTS_DIR
+        / "features_utilizadas.csv",
+        index=False,
+    )
+
+    # ========================================================
+    # X
+    # ========================================================
+
+    X = preparar_X(
+        train,
+        columnas_features
+    )
+
+    X_tests = {
+
+        nombre: preparar_X(
+            datos,
+            columnas_features
+        )
+
+        for nombre, datos
+        in conjuntos_test.items()
+    }
+
+    # ========================================================
+    # TRAIN / VALIDACION
+    # ========================================================
+
+    indices_train, indices_validacion = (
+        train_test_split(
+            np.arange(len(train)),
+            test_size=0.20,
+            random_state=RANDOM_STATE,
+        )
+    )
+
+    X_train = X.iloc[
+        indices_train
+    ]
+
+    X_validacion = X.iloc[
+        indices_validacion
+    ]
+
+    print("\n" + "=" * 70)
+    print("DIVISION DE DATOS")
+    print("=" * 70)
+
+    print(
+        f"Train:       {len(X_train):,}"
+    )
+
+    print(
+        f"Validacion:  {len(X_validacion):,}"
+    )
+
+    # ========================================================
+    # RESULTADOS
+    # ========================================================
+
+    resultados = []
+
+    mejores_modelos = []
+
+    importancias = []
+
+    predicciones = {}
+
+    # Guardaremos especificamente
+    # el mejor RF de cada caso.
+    mejores_rf = {}
+
+    # ========================================================
+    # BASELINE
+    # ========================================================
+
+    print("\n" + "=" * 70)
+    print("BASELINE")
+    print("=" * 70)
+
+    print(
+        "\nEl baseline utiliza directamente "
+        "Delay_Typical como prediccion."
+    )
+
+    print(
+        "No aprende con los datos."
+    )
+
+    print(
+        "Sirve como referencia para saber "
+        "si ML realmente mejora."
+    )
+
+    conjuntos_base = [
+
+        (
+            "Train",
+            train.iloc[
+                indices_train
+            ],
+        ),
+
+        (
+            "Validacion",
+            train.iloc[
+                indices_validacion
+            ],
+        ),
+
+        (
+            "Test Labels",
+            test_labels,
+        ),
+
+        (
+            "Test Designs",
+            test_designs,
+        ),
+    ]
+
+    for conjunto, datos in conjuntos_base:
+
+        for esquina in (
+            "Slow",
+            "Fast",
+        ):
+
+            # ----------------------------------------------
+            # Baseline de Delay
+            # ----------------------------------------------
+
+            registrar(
+                resultados,
+
+                "Baseline",
+
+                "Typical como prediccion",
+
+                "Delay",
+
+                conjunto,
+
+                esquina,
+
+                datos[
+                    f"Delay_{esquina}"
+                ],
+
+                datos[
+                    "Delay_Typical"
+                ],
+
+                n_entrenamiento=None,
+
+                metrica_evaluada="Delay",
+            )
+
+            # ----------------------------------------------
+            # Baseline de Delta
+            # Delta = 0
+            # ----------------------------------------------
+
+            registrar(
+                resultados,
+
+                "Baseline",
+
+                "Delta=0",
+
+                "Delta",
+
+                conjunto,
+
+                esquina,
+
+                datos[
+                    f"Delta_{esquina}"
+                ],
+
+                np.zeros(
+                    len(datos)
+                ),
+
+                n_entrenamiento=None,
+
+                metrica_evaluada="Delta",
+            )
+
+            # ----------------------------------------------
+            # Grafica Typical vs real
+            # ----------------------------------------------
+
+            guardar_grafica_baseline(
+
+                datos[
+                    "Delay_Typical"
+                ],
+
+                datos[
+                    f"Delay_{esquina}"
+                ],
+
+                esquina,
+
+                conjunto,
+
+                GRAFICAS_DIR
+                / (
+                    f"{conjunto.lower().replace(' ', '_')}"
+                    f"_typical_vs_{esquina.lower()}.png"
+                ),
+            )
+
+    # ========================================================
+    # EXPERIMENTOS
+    # ========================================================
+
+    experimentos = crear_experimentos()
+
+    print("\n" + "=" * 70)
+    print(
+        f"TOTAL DE CONFIGURACIONES: "
+        f"{len(experimentos)}"
+    )
+    print("=" * 70)
+
+    # ========================================================
+    # LOOP PRINCIPAL
+    # ========================================================
+
+    for esquina in (
+        "Slow",
+        "Fast",
+    ):
+
+        for objetivo in (
+            "Delay",
+            "Delta",
+        ):
+
+            print("\n\n" + "=" * 70)
+
+            print(
+                f"ESQUINA: {esquina}"
+            )
+
+            print(
+                f"OBJETIVO: {objetivo}"
+            )
+
+            print("=" * 70)
+
+            columna_objetivo = (
+                f"{objetivo}_{esquina}"
+            )
+
+            y_train = train[
+                columna_objetivo
+            ].iloc[
+                indices_train
+            ]
+
+            y_validacion = train[
+                columna_objetivo
+            ].iloc[
+                indices_validacion
+            ]
+
+            real_delay_train = train[
+                f"Delay_{esquina}"
+            ].iloc[
+                indices_train
+            ]
+
+            real_delay_validacion = train[
+                f"Delay_{esquina}"
+            ].iloc[
+                indices_validacion
+            ]
+
+            candidatos = []
+
+            # =================================================
+            # TODOS LOS EXPERIMENTOS
+            # =================================================
+
+            for numero_experimento, (
+                nombre_modelo,
+                parametros
+            ) in enumerate(
+                experimentos,
+                start=1
+            ):
+
+                experimento = json.dumps(
+                    parametros,
+                    sort_keys=True
+                )
+
+                print(
+                    "\n"
+                    + "-" * 70
+                )
+
+                print(
+                    f"Experimento "
+                    f"{numero_experimento}/"
+                    f"{len(experimentos)}"
+                )
+
+                print(
+                    f"Modelo: {nombre_modelo}"
+                )
+
+                print(
+                    f"Esquina: {esquina}"
+                )
+
+                print(
+                    f"Objetivo: {objetivo}"
+                )
+
+                print(
+                    f"Parametros: "
+                    f"{experimento}"
+                )
+
+                modelo = crear_modelo(
+                    nombre_modelo,
+                    parametros
+                )
+
+                # --------------------------------------------
+                # SVR usa muestra
+                # --------------------------------------------
+
+                if (
+                    nombre_modelo == "SVR"
+                    and len(X_train)
+                    > SVR_MAX_TRAIN
+                ):
+
+                    rng = (
+                        np.random.default_rng(
+                            RANDOM_STATE
+                        )
+                    )
+
+                    idx_sub = np.sort(
+                        rng.choice(
+                            len(X_train),
+                            size=SVR_MAX_TRAIN,
+                            replace=False,
+                        )
+                    )
+
+                    X_ajuste = (
+                        X_train.iloc[
+                            idx_sub
+                        ]
+                    )
+
+                    y_ajuste = (
+                        y_train.iloc[
+                            idx_sub
+                        ]
+                    )
+
+                else:
+
+                    X_ajuste = X_train
+                    y_ajuste = y_train
+
+                # --------------------------------------------
+                # Entrenar
+                # --------------------------------------------
+
+                modelo.fit(
+                    X_ajuste,
+                    y_ajuste
+                )
+
+                # --------------------------------------------
+                # Prediccion target
+                # --------------------------------------------
+
+                pred_target_train = (
+                    predecir_target(
+                        modelo,
+                        X_train
+                    )
+                )
+
+                pred_target_validacion = (
+                    predecir_target(
+                        modelo,
+                        X_validacion
+                    )
+                )
+
+                # --------------------------------------------
+                # Prediccion Delay final
+                # --------------------------------------------
+
+                pred_delay_train = (
+                    predecir_delay(
+                        modelo,
+                        X_train,
+                        objetivo
+                    )
+                )
+
+                pred_delay_validacion = (
+                    predecir_delay(
+                        modelo,
+                        X_validacion,
+                        objetivo
+                    )
+                )
+
+                # --------------------------------------------
+                # Target puro
+                # --------------------------------------------
+
+                registrar(
+                    resultados,
+
+                    nombre_modelo,
+
+                    experimento,
+
+                    objetivo,
+
+                    "Train",
+
+                    esquina,
+
+                    y_train,
+
+                    pred_target_train,
+
+                    len(X_ajuste),
+
+                    objetivo,
+                )
+
+                registrar(
+                    resultados,
+
+                    nombre_modelo,
+
+                    experimento,
+
+                    objetivo,
+
+                    "Validacion",
+
+                    esquina,
+
+                    y_validacion,
+
+                    pred_target_validacion,
+
+                    len(X_ajuste),
+
+                    objetivo,
+                )
+
+                # --------------------------------------------
+                # Delay final
+                # --------------------------------------------
+
+                registrar(
+                    resultados,
+
+                    nombre_modelo,
+
+                    experimento,
+
+                    objetivo,
+
+                    "Train",
+
+                    esquina,
+
+                    real_delay_train,
+
+                    pred_delay_train,
+
+                    len(X_ajuste),
+
+                    "Delay reconstruido",
+                )
+
+                registrar(
+                    resultados,
+
+                    nombre_modelo,
+
+                    experimento,
+
+                    objetivo,
+
+                    "Validacion",
+
+                    esquina,
+
+                    real_delay_validacion,
+
+                    pred_delay_validacion,
+
+                    len(X_ajuste),
+
+                    "Delay reconstruido",
+                )
+
+                # --------------------------------------------
+                # RMSE para seleccionar ganador
+                # --------------------------------------------
+
+                rmse_delay = metricas(
+                    real_delay_validacion,
+                    pred_delay_validacion,
+                )["RMSE"]
+
+                candidatos.append({
+
+                    "RMSE_Delay": rmse_delay,
+
+                    "Modelo": nombre_modelo,
+
+                    "Parametros": parametros,
+
+                    "Experimento": experimento,
+
+                    "Modelo_entrenado": modelo,
+                })
+
+            # =================================================
+            # ORDENAR CANDIDATOS
+            # =================================================
+
+            candidatos_ordenados = sorted(
+                candidatos,
+                key=lambda x:
+                x["RMSE_Delay"]
+            )
+
+            # =================================================
+            # GUARDAR TODOS LOS CANDIDATOS
+            # =================================================
+
+            candidatos_df = pd.DataFrame([
+
+                {
+                    "Esquina": esquina,
+
+                    "Objetivo": objetivo,
+
+                    "Modelo": c["Modelo"],
+
+                    "Experimento": c["Experimento"],
+
+                    "RMSE_Delay_Validacion":
+                        c["RMSE_Delay"],
+                }
+
+                for c in candidatos_ordenados
+            ])
+
+            candidatos_df.to_csv(
+
+                RESULTS_DIR
+                / (
+                    f"ranking_{esquina.lower()}_"
+                    f"{objetivo.lower()}.csv"
+                ),
+
+                index=False,
+            )
+
+            # =================================================
+            # MEJOR MODELO
+            # =================================================
+
+            mejor = candidatos_ordenados[0]
+
+            mejor_rmse = (
+                mejor["RMSE_Delay"]
+            )
+
+            mejor_nombre = (
+                mejor["Modelo"]
+            )
+
+            mejores_parametros = (
+                mejor["Parametros"]
+            )
+
+            mejor_experimento = (
+                mejor["Experimento"]
+            )
+
+            print("\n" + "*" * 70)
+
+            print(
+                "MEJOR MODELO"
+            )
+
+            print(
+                f"Esquina: {esquina}"
+            )
+
+            print(
+                f"Objetivo: {objetivo}"
+            )
+
+            print(
+                f"Modelo: {mejor_nombre}"
+            )
+
+            print(
+                f"Parametros: "
+                f"{mejor_experimento}"
+            )
+
+            print(
+                f"RMSE Delay validacion: "
+                f"{mejor_rmse:.6f}"
+            )
+
+            print("*" * 70)
+
+            # =================================================
+            # GUARDAR INFORMACION DEL GANADOR
+            # =================================================
+
+            mejores_modelos.append({
+
+                "Esquina": esquina,
+
+                "Objetivo": objetivo,
+
+                "Modelo": mejor_nombre,
+
+                "Experimento": (
+                    mejor_experimento
+                ),
+
+                "RMSE_Delay_validacion":
+                    mejor_rmse,
+            })
+
+            # =================================================
+            # ENTRENAMIENTO FINAL
+            # =================================================
+
+            print(
+                "\nEntrenando modelo final "
+                "con todo Train..."
+            )
+
+            modelo_final = crear_modelo(
+                mejor_nombre,
+                mejores_parametros
+            )
+
+            y_total = train[
+                columna_objetivo
+            ]
+
+            # Para SVR mantenemos la limitacion.
+            if (
+                mejor_nombre == "SVR"
+                and len(X) > SVR_MAX_TRAIN
+            ):
+
+                rng = (
+                    np.random.default_rng(
+                        RANDOM_STATE
+                    )
+                )
+
+                idx_sub = np.sort(
+                    rng.choice(
+                        len(X),
+                        size=SVR_MAX_TRAIN,
+                        replace=False,
+                    )
+                )
+
+                X_final = X.iloc[
+                    idx_sub
+                ]
+
+                y_final = y_total.iloc[
+                    idx_sub
+                ]
+
+            else:
+
+                X_final = X
+                y_final = y_total
+
+            modelo_final.fit(
+                X_final,
+                y_final
+            )
+
+            # =================================================
+            # GUARDAR MODELO
+            # =================================================
+
+            nombre_archivo = (
+                f"{esquina.lower()}_"
+                f"{objetivo.lower()}"
+            )
+
+            joblib.dump(
+                modelo_final,
+                RESULTS_DIR
+                / (
+                    f"mejor_modelo_"
+                    f"{nombre_archivo}.joblib"
+                ),
+            )
+
+            # =================================================
+            # TRAIN FINAL
+            # =================================================
+
+            pred_train_target = (
+                predecir_target(
+                    modelo_final,
+                    X
+                )
+            )
+
+            pred_train_delay = (
+                predecir_delay(
+                    modelo_final,
+                    X,
+                    objetivo
+                )
+            )
+
+            registrar(
+                resultados,
+
+                mejor_nombre,
+
+                mejor_experimento,
+
+                f"{objetivo} (final)",
+
+                "Train final",
+
+                esquina,
+
+                train[
+                    columna_objetivo
+                ],
+
+                pred_train_target,
+
+                len(X_final),
+
+                objetivo,
+            )
+
+            registrar(
+                resultados,
+
+                mejor_nombre,
+
+                mejor_experimento,
+
+                f"{objetivo} (final)",
+
+                "Train final",
+
+                esquina,
+
+                train[
+                    f"Delay_{esquina}"
+                ],
+
+                pred_train_delay,
+
+                len(X_final),
+
+                "Delay reconstruido",
+            )
+
+            # =================================================
+            # TEST LABELS / TEST DESIGNS
+            # =================================================
+
+            for conjunto, datos in (
+                conjuntos_test.items()
+            ):
+
+                pred_target = (
+                    predecir_target(
+                        modelo_final,
+                        X_tests[conjunto]
+                    )
+                )
+
+                pred_delay = (
+                    predecir_delay(
+                        modelo_final,
+                        X_tests[conjunto],
+                        objetivo
+                    )
+                )
+
+                # --------------------------------------------
+                # Target
+                # --------------------------------------------
+
+                registrar(
+                    resultados,
+
+                    mejor_nombre,
+
+                    mejor_experimento,
+
+                    f"{objetivo} (final)",
+
+                    conjunto,
+
+                    esquina,
+
+                    datos[
+                        columna_objetivo
+                    ],
+
+                    pred_target,
+
+                    len(X_final),
+
+                    objetivo,
+                )
+
+                # --------------------------------------------
+                # Delay final
+                # --------------------------------------------
+
+                registrar(
+                    resultados,
+
+                    mejor_nombre,
+
+                    mejor_experimento,
+
+                    f"{objetivo} (final)",
+
+                    conjunto,
+
+                    esquina,
+
+                    datos[
+                        f"Delay_{esquina}"
+                    ],
+
+                    pred_delay,
+
+                    len(X_final),
+
+                    "Delay reconstruido",
+                )
+
+                # --------------------------------------------
+                # Guardar predicciones
+                # --------------------------------------------
+
+                predicciones[
+                    (
+                        conjunto,
+                        esquina,
+                        objetivo,
+                    )
+                ] = pred_delay
+
+                # --------------------------------------------
+                # Grafica real vs predicho
+                # --------------------------------------------
+
+                guardar_grafica(
+
+                    datos[
+                        f"Delay_{esquina}"
+                    ],
+
+                    pred_delay,
+
+                    (
+                        f"{conjunto}: "
+                        f"{esquina} - "
+                        f"{objetivo} - "
+                        f"{mejor_nombre}"
+                    ),
+
+                    GRAFICAS_DIR
+                    / (
+                        f"{conjunto.lower().replace(' ', '_')}_"
+                        f"{nombre_archivo}.png"
+                    ),
+                )
+
+            # =================================================
+            # FEATURE IMPORTANCE DEL GANADOR
+            # =================================================
+
+            importancia_ganador = (
+                obtener_importancias(
+                    modelo_final,
+                    columnas_features
+                )
+            )
+
+            registrar_importancias(
+
+                importancias,
+
+                importancia_ganador,
+
+                esquina,
+
+                objetivo,
+
+                mejor_nombre,
+
+                mejor_experimento,
+            )
+
+            # =================================================
+            # FEATURE IMPORTANCE DEL MEJOR RF
+            #
+            # Esto es especialmente importante porque
+            # el profesor pidio revisar feature_importances_
+            # de Random Forest.
+            # =================================================
+
+            rf_candidatos = [
+                c
+                for c in candidatos_ordenados
+                if c["Modelo"]
+                == "Random Forest"
+            ]
+
+            if rf_candidatos:
+
+                mejor_rf = rf_candidatos[0]
+
+                mejores_rf[
+                    (
+                        esquina,
+                        objetivo,
+                    )
+                ] = mejor_rf
+
+                print(
+                    "\nMejor Random Forest "
+                    "para feature importance:"
+                )
+
+                print(
+                    f"Modelo: "
+                    f"{mejor_rf['Modelo']}"
+                )
+
+                print(
+                    f"Parametros: "
+                    f"{mejor_rf['Experimento']}"
+                )
+
+                print(
+                    f"RMSE validacion: "
+                    f"{mejor_rf['RMSE_Delay']:.6f}"
+                )
+
+                rf_modelo = crear_modelo(
+                    "Random Forest",
+                    mejor_rf["Parametros"]
+                )
+
+                rf_modelo.fit(
+                    X_train,
+                    y_train
+                )
+
+                rf_importancia = (
+                    obtener_importancias(
+                        rf_modelo,
+                        columnas_features
+                    )
+                )
+
+                registrar_importancias(
+
+                    importancias,
+
+                    rf_importancia,
+
+                    esquina,
+
+                    objetivo,
+
+                    "Random Forest - mejor",
+                    
+                    mejor_rf[
+                        "Experimento"
+                    ],
+                )
+
+                # --------------------------------------------
+                # Guardar CSV especifico
+                # --------------------------------------------
+
+                rf_importancia.to_csv(
+
+                    IMPORTANCIA_DIR
+                    / (
+                        f"feature_importance_"
+                        f"rf_mejor_"
+                        f"{esquina.lower()}_"
+                        f"{objetivo.lower()}.csv"
+                    ),
+
+                    index=False,
+                )
+
+                # --------------------------------------------
+                # Grafica
+                # --------------------------------------------
+
+                guardar_importancias(
+
+                    rf_importancia,
+
+                    IMPORTANCIA_DIR
+                    / (
+                        f"feature_importance_"
+                        f"rf_mejor_"
+                        f"{esquina.lower()}_"
+                        f"{objetivo.lower()}.png"
+                    ),
+
+                    (
+                        f"Feature Importance - "
+                        f"RF mejor - "
+                        f"{esquina} - "
+                        f"{objetivo}"
+                    ),
+                )
+
+    # ========================================================
+    # DATAFRAME GENERAL DE METRICAS
+    # ========================================================
+
+    metricas_df = pd.DataFrame(
+        resultados
+    )
+
+    metricas_df.to_csv(
+
+        RESULTS_DIR
+        / "metricas_objetivo3.csv",
+
+        index=False,
+    )
+
+    # ========================================================
+    # MEJORES MODELOS
+    # ========================================================
+
+    mejores_df = pd.DataFrame(
+        mejores_modelos
+    )
+
+    mejores_df.to_csv(
+
+        RESULTS_DIR
+        / "mejores_modelos.csv",
+
+        index=False,
+    )
+
+    # ========================================================
+    # EXPERIMENTOS DE VALIDACION
+    # ========================================================
+
+    validacion_df = metricas_df[
+
+        (
+            metricas_df["Conjunto"]
+            == "Validacion"
+        )
+
+        &
+
+        (
+            metricas_df["Metrica_evaluada"]
+            == "Delay reconstruido"
+        )
+
+    ].copy()
+
+    validacion_df.to_csv(
+
+        RESULTS_DIR
+        / "experimentos_validacion.csv",
+
+        index=False,
+    )
+
+    # ========================================================
+    # IMPORTANCIAS
+    # ========================================================
+
+    importancias_df = pd.DataFrame(
+        importancias
+    )
+
+    importancias_df.to_csv(
+
+        RESULTS_DIR
+        / "importancia_variables.csv",
+
+        index=False,
+    )
+
+    # ========================================================
+    # GRAFICAS DE IMPORTANCIA
+    # ========================================================
+
+    if not importancias_df.empty:
+
+        for (
+            esquina,
+            objetivo,
+            modelo,
+        ), grupo in importancias_df.groupby(
+            [
+                "Esquina",
+                "Objetivo",
+                "Modelo",
+            ]
+        ):
+
+            nombre_seguro = (
+                modelo
+                .lower()
+                .replace(" ", "_")
+                .replace("/", "_")
+            )
+
+            nombre = (
+                f"importancia_"
+                f"{esquina.lower()}_"
+                f"{objetivo.lower()}_"
+                f"{nombre_seguro}.png"
+            )
+
+            guardar_importancias(
+
+                grupo,
+
+                GRAFICAS_DIR
+                / nombre,
+
+                (
+                    f"Importancia: "
+                    f"{esquina}, "
+                    f"{objetivo}, "
+                    f"{modelo}"
+                ),
+            )
+
+    # ========================================================
+    # PREDICCIONES DE TEST
+    # ========================================================
+
+    for conjunto, datos in (
+        conjuntos_test.items()
+    ):
+
+        columnas = [
+            "Delay_Typical",
+            "Delay_Slow",
+            "Delay_Fast",
+        ]
+
+        for columna in (
+            "row_id",
+            "Design",
+            "Previous_description",
+            "Description",
+        ):
+
+            if columna in datos.columns:
+
+                columnas.insert(
+                    0,
+                    columna
+                )
+
+        pred_df = datos[
+            columnas
+        ].copy()
+
+        for esquina in (
+            "Slow",
+            "Fast",
+        ):
+
+            # --------------------------------------------
+            # Baseline
+            # --------------------------------------------
+
+            pred_df[
+                f"Baseline_{esquina}"
+            ] = (
+                datos[
+                    "Delay_Typical"
+                ].to_numpy()
+            )
+
+            # --------------------------------------------
+            # Delay / Delta
+            # --------------------------------------------
+
+            for objetivo in (
+                "Delay",
+                "Delta",
+            ):
+
+                pred_df[
+                    f"Predicted_{esquina}_{objetivo}"
+                ] = predicciones[
+                    (
+                        conjunto,
+                        esquina,
+                        objetivo,
+                    )
+                ]
+
+        pred_df.to_csv(
+
+            RESULTS_DIR
+            / (
+                "predicciones_"
+                f"{conjunto.lower().replace(' ', '_')}.csv"
+            ),
+
+            index=False,
+        )
+
+    # ========================================================
+    # TABLA DE 4 CONJUNTOS
+    #
+    # Esta es especialmente util para la reunion.
+    # ========================================================
+
+    filas_tabla = []
+
+    # --------------------------------------------------------
+    # Baseline
+    # --------------------------------------------------------
+
+    for esquina in (
+        "Slow",
+        "Fast",
+    ):
+
+        for conjunto in (
+            "Train",
+            "Validacion",
+            "Test Labels",
+            "Test Designs",
+        ):
+
+            filtro = (
+
+                (metricas_df["Modelo"] == "Baseline")
+
+                &
+
+                (
+                    metricas_df["Objetivo"]
+                    == "Delay"
+                )
+
+                &
+
+                (
+                    metricas_df["Conjunto"]
+                    == conjunto
+                )
+
+                &
+
+                (
+                    metricas_df["Esquina"]
+                    == esquina
+                )
+
+                &
+
+                (
+                    metricas_df[
+                        "Metrica_evaluada"
+                    ]
+                    == "Delay"
+                )
+            )
+
+            encontrados = (
+                metricas_df.loc[
+                    filtro
+                ]
+            )
+
+            if len(encontrados):
+
+                fila = encontrados.iloc[0]
+
+                filas_tabla.append({
+
+                    "Tipo": "Baseline",
+
+                    "Esquina": esquina,
+
+                    "Objetivo": "Delay",
+
+                    "Modelo": "Baseline",
+
+                    "Conjunto": conjunto,
+
+                    "MAE": fila["MAE"],
+
+                    "RMSE": fila["RMSE"],
+
+                    "R2": fila["R2"],
+
+                    "Pearson": fila["Pearson"],
+                })
+
+    # --------------------------------------------------------
+    # Ganadores
+    # --------------------------------------------------------
+
+    for _, mejor in (
+        mejores_df.iterrows()
+    ):
+
+        esquina = mejor[
+            "Esquina"
+        ]
+
+        objetivo = mejor[
+            "Objetivo"
+        ]
+
+        modelo = mejor[
+            "Modelo"
+        ]
+
+        experimento = mejor[
+            "Experimento"
+        ]
+
+        conjuntos_resumen = [
+            "Train final",
+            "Validacion",
+            "Test Labels",
+            "Test Designs",
+        ]
+
+        for conjunto in (
+            conjuntos_resumen
+        ):
+
+            filtro = (
+
+                (metricas_df["Modelo"] == modelo)
+
+                &
+
+                (
+                    metricas_df[
+                        "Experimento"
+                    ] == experimento
+                )
+
+                &
+
+                (
+                    metricas_df[
+                        "Objetivo"
+                    ]
+                    == f"{objetivo} (final)"
+                )
+
+                &
+
+                (
+                    metricas_df[
+                        "Conjunto"
+                    ]
+                    == conjunto
+                )
+
+                &
+
+                (
+                    metricas_df[
+                        "Esquina"
+                    ]
+                    == esquina
+                )
+
+                &
+
+                (
+                    metricas_df[
+                        "Metrica_evaluada"
+                    ]
+                    == "Delay reconstruido"
+                )
+            )
+
+            encontrados = (
+                metricas_df.loc[
+                    filtro
+                ]
+            )
+
+            if len(encontrados):
+
+                fila = encontrados.iloc[0]
+
+                filas_tabla.append({
+
+                    "Tipo": "Mejor modelo",
+
+                    "Esquina": esquina,
+
+                    "Objetivo": objetivo,
+
+                    "Modelo": modelo,
+
+                    "Conjunto": conjunto,
+
+                    "MAE": fila["MAE"],
+
+                    "RMSE": fila["RMSE"],
+
+                    "R2": fila["R2"],
+
+                    "Pearson": fila["Pearson"],
+                })
+
+    tabla_4_conjuntos = pd.DataFrame(
+        filas_tabla
+    )
+
+    tabla_4_conjuntos.to_csv(
+
+        RESULTS_DIR
+        / "tabla_4_conjuntos.csv",
+
+        index=False,
+    )
+
+    # ========================================================
+    # COMPARACION DELTA VS DELAY DIRECTO
+    # ========================================================
+
+    comparacion_delta = []
+
+    for esquina in (
+        "Slow",
+        "Fast",
+    ):
+
+        for conjunto in (
+            "Validacion",
+            "Test Labels",
+            "Test Designs",
+        ):
+
+            # --------------------------------------------
+            # Mejor Delay directo
+            # --------------------------------------------
+
+            filtro_delay = (
+
+                (mejores_df["Esquina"] == esquina)
+
+                &
+
+                (
+                    mejores_df["Objetivo"]
+                    == "Delay"
+                )
+            )
+
+            mejor_delay_df = (
+                mejores_df.loc[
+                    filtro_delay
+                ]
+            )
+
+            # --------------------------------------------
+            # Mejor Delta
+            # --------------------------------------------
+
+            filtro_delta = (
+
+                (mejores_df["Esquina"] == esquina)
+
+                &
+
+                (
+                    mejores_df["Objetivo"]
+                    == "Delta"
+                )
+            )
+
+            mejor_delta_df = (
+                mejores_df.loc[
+                    filtro_delta
+                ]
+            )
+
+            if (
+                len(mejor_delay_df)
+                and len(mejor_delta_df)
+            ):
+
+                md = (
+                    mejor_delay_df.iloc[0]
+                )
+
+                mdelta = (
+                    mejor_delta_df.iloc[0]
+                )
+
+                # Delay directo
+                filtro_md = (
+
+                    (metricas_df["Modelo"]
+                     == md["Modelo"])
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Experimento"
+                        ]
+                        == md["Experimento"]
+                    )
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Objetivo"
+                        ]
+                        == "Delay (final)"
+                    )
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Conjunto"
+                        ]
+                        == conjunto
+                    )
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Esquina"
+                        ]
+                        == esquina
+                    )
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Metrica_evaluada"
+                        ]
+                        == "Delay reconstruido"
+                    )
+                )
+
+                # Delta
+                filtro_mdelta = (
+
+                    (metricas_df["Modelo"]
+                     == mdelta["Modelo"])
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Experimento"
+                        ]
+                        == mdelta["Experimento"]
+                    )
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Objetivo"
+                        ]
+                        == "Delta (final)"
+                    )
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Conjunto"
+                        ]
+                        == conjunto
+                    )
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Esquina"
+                        ]
+                        == esquina
+                    )
+
+                    &
+
+                    (
+                        metricas_df[
+                            "Metrica_evaluada"
+                        ]
+                        == "Delay reconstruido"
+                    )
+                )
+
+                delay_rows = (
+                    metricas_df.loc[
+                        filtro_md
+                    ]
+                )
+
+                delta_rows = (
+                    metricas_df.loc[
+                        filtro_mdelta
+                    ]
+                )
+
+                if (
+                    len(delay_rows)
+                    and len(delta_rows)
+                ):
+
+                    rmse_delay = (
+                        delay_rows.iloc[0]["RMSE"]
+                    )
+
+                    rmse_delta = (
+                        delta_rows.iloc[0]["RMSE"]
+                    )
+
+                    mejora = (
+                        (
+                            rmse_delay
+                            - rmse_delta
+                        )
+                        / rmse_delay
+                        * 100
+                    )
+
+                    comparacion_delta.append({
+
+                        "Esquina": esquina,
+
+                        "Conjunto": conjunto,
+
+                        "Modelo_Delay":
+                            md["Modelo"],
+
+                        "RMSE_Delay":
+                            rmse_delay,
+
+                        "Modelo_Delta":
+                            mdelta["Modelo"],
+
+                        "RMSE_Delta":
+                            rmse_delta,
+
+                        "Mejora_Delta_porcentaje":
+                            mejora,
+
+                        "Delta_mejor":
+                            rmse_delta
+                            < rmse_delay,
+                    })
+
+    comparacion_delta_df = pd.DataFrame(
+        comparacion_delta
+    )
+
+    comparacion_delta_df.to_csv(
+
+        RESULTS_DIR
+        / "comparacion_delta_vs_delay.csv",
+
+        index=False,
+    )
+
+    # ========================================================
+    # RESUMEN PARA REUNION
+    # ========================================================
+
+    filas_resumen = []
+
+    for _, mejor in (
+        mejores_df.iterrows()
+    ):
+
+        esquina = mejor[
+            "Esquina"
+        ]
+
+        objetivo = mejor[
+            "Objetivo"
+        ]
+
+        modelo = mejor[
+            "Modelo"
+        ]
+
+        experimento = mejor[
+            "Experimento"
+        ]
+
+        def obtener_metricas(
+            conjunto,
+            objetivo_final=True,
+        ):
+
+            if objetivo_final:
+
+                objetivo_busqueda = (
+                    f"{objetivo} (final)"
+                )
+
+            else:
+
+                objetivo_busqueda = objetivo
+
+            filtro = (
+
+                (metricas_df["Modelo"]
+                 == modelo)
+
+                &
+
+                (
+                    metricas_df[
+                        "Experimento"
+                    ]
+                    == experimento
+                )
+
+                &
+
+                (
+                    metricas_df[
+                        "Objetivo"
+                    ]
+                    == objetivo_busqueda
+                )
+
+                &
+
+                (
+                    metricas_df[
+                        "Conjunto"
+                    ]
+                    == conjunto
+                )
+
+                &
+
+                (
+                    metricas_df[
+                        "Esquina"
+                    ]
+                    == esquina
+                )
+
+                &
+
+                (
+                    metricas_df[
+                        "Metrica_evaluada"
+                    ]
+                    == "Delay reconstruido"
+                )
+            )
+
+            encontrados = (
+                metricas_df.loc[
+                    filtro
+                ]
+            )
+
+            if not len(encontrados):
+                return {
+                    "MAE": np.nan,
+                    "RMSE": np.nan,
+                    "R2": np.nan,
+                    "Pearson": np.nan,
+                }
+
+            fila = encontrados.iloc[0]
+
+            return {
+
+                "MAE": fila["MAE"],
+
+                "RMSE": fila["RMSE"],
+
+                "R2": fila["R2"],
+
+                "Pearson": fila["Pearson"],
+            }
+
+        for conjunto in (
+            "Train final",
+            "Validacion",
+            "Test Labels",
+            "Test Designs",
+        ):
+
+            valores = obtener_metricas(
+                conjunto
+            )
+
+            filas_resumen.append({
+
+                "Esquina": esquina,
+
+                "Objetivo": objetivo,
+
+                "Modelo": modelo,
+
+                "Experimento": experimento,
+
+                "Conjunto": conjunto,
+
+                "MAE": valores["MAE"],
+
+                "RMSE": valores["RMSE"],
+
+                "R2": valores["R2"],
+
+                "Pearson": valores["Pearson"],
+            })
+
+    resumen_df = pd.DataFrame(
+        filas_resumen
+    )
+
+    resumen_df.to_csv(
+
+        RESULTS_DIR
+        / "resumen_para_reunion.csv",
+
+        index=False,
+    )
+
+    # ========================================================
+    # IMPRIMIR RESULTADOS IMPORTANTES
+    # ========================================================
+
+    print("\n" + "=" * 70)
+    print("MEJORES MODELOS")
+    print("=" * 70)
+
+    print(
+        mejores_df.to_string(
+            index=False,
+            float_format=lambda x:
+            f"{x:.6f}"
+        )
+    )
+
+    print("\n" + "=" * 70)
+    print("TABLA DE 4 CONJUNTOS")
+    print("=" * 70)
+
+    print(
+        tabla_4_conjuntos.to_string(
+            index=False,
+            float_format=lambda x:
+            f"{x:.6f}"
+        )
+    )
+
+    print("\n" + "=" * 70)
+    print("COMPARACION DELTA VS DELAY")
+    print("=" * 70)
+
+    if len(comparacion_delta_df):
+
+        print(
+            comparacion_delta_df.to_string(
+                index=False,
+                float_format=lambda x:
+                f"{x:.6f}"
+            )
+        )
+
+    print("\n" + "=" * 70)
+    print("FEATURE IMPORTANCE")
+    print("=" * 70)
+
+    if len(importancias_df):
+
+        # Mostrar solamente RF mejor.
+        rf_importancias = (
+            importancias_df[
+                importancias_df[
+                    "Modelo"
+                ]
+                == "Random Forest - mejor"
+            ]
+            .sort_values(
+                [
+                    "Esquina",
+                    "Objetivo",
+                    "Importancia",
+                ],
+                ascending=[
+                    True,
+                    True,
+                    False,
+                ],
+            )
+        )
+
+        print(
+            rf_importancias.to_string(
+                index=False,
+                float_format=lambda x:
+                f"{x:.6f}"
+            )
+        )
+
+    # ========================================================
+    # UBICACION DE RESULTADOS
+    # ========================================================
+
+    print("\n" + "=" * 70)
+    print("ARCHIVOS GENERADOS")
+    print("=" * 70)
+
+    print(
+        f"\nResultados:"
+        f"\n{RESULTS_DIR}"
+    )
+
+    print(
+        "\nArchivos principales:"
+    )
+
+    print(
+        " - metricas_objetivo3.csv"
+    )
+
+    print(
+        " - mejores_modelos.csv"
+    )
+
+    print(
+        " - tabla_4_conjuntos.csv"
+    )
+
+    print(
+        " - resumen_para_reunion.csv"
+    )
+
+    print(
+        " - comparacion_delta_vs_delay.csv"
+    )
+
+    print(
+        " - diagnostico_distribucion_delta.csv"
+    )
+
+    print(
+        " - importancia_variables.csv"
+    )
+
+    print(
+        " - predicciones_test_labels.csv"
+    )
+
+    print(
+        " - predicciones_test_designs.csv"
+    )
+
+    print(
+        " - ranking_slow_delay.csv"
+    )
+
+    print(
+        " - ranking_fast_delay.csv"
+    )
+
+    print(
+        " - ranking_slow_delta.csv"
+    )
+
+    print(
+        " - ranking_fast_delta.csv"
+    )
+
+    print("\n" + "=" * 70)
+    print("PROCESO TERMINADO")
+    print("=" * 70)
+
+
+# ============================================================
+# EJECUCION
+# ============================================================
+
+if __name__ == "__main__":
+    main()
