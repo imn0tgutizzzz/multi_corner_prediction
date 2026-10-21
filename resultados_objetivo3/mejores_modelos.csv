@@ -1,5 +1,5 @@
 Esquina,Objetivo,Modelo,Experimento,RMSE_Delay_validacion
 Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",0.21821196550565788
 Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",0.21544603941891874
-Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",0.30045979426638275
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",0.3031618035427817
 Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",0.27787045873880545

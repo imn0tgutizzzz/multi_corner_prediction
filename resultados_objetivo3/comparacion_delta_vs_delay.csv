@@ -1,5 +1,5 @@
 Esquina,Conjunto,Modelo_Delay,RMSE_Delay,Modelo_Delta,RMSE_Delta,Mejora_Delta_porcentaje,Delta_mejor
 Slow,Test Labels,Random Forest,0.25796629752601863,Random Forest,0.12315856841415324,52.25788422934148,True
 Slow,Test Designs,Random Forest,0.3276379250161773,Random Forest,0.3324631465979214,-1.4727298683465584,False
-Fast,Test Labels,Hist Gradient Boosting,0.3660662484645883,Random Forest,1.0813026914830701,-195.3844272774224,False
-Fast,Test Designs,Hist Gradient Boosting,0.37700907203300915,Random Forest,0.3624959638113158,3.849538193718221,True
+Fast,Test Labels,Random Forest,0.3857527232070444,Random Forest,1.0813026914830701,-180.3098011838803,False
+Fast,Test Designs,Random Forest,0.3676175282808641,Random Forest,0.3624959638113158,1.3931774400145909,True

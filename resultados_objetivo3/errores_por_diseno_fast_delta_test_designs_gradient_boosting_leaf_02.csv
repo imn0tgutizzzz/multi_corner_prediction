@@ -1,0 +1,3 @@
+Conjunto,Modelo,min_samples_leaf,Design,N,MAE,RMSE,Error_absoluto_max,Error_firmado_medio
+Test Designs,Gradient Boosting,2,picorv32,40769,0.10127972013714093,0.3598100515560104,11.94339658438724,-0.007181598203849847
+Test Designs,Gradient Boosting,2,zipdiv,6202,0.09766644933645292,0.2347955489818827,2.0022875612199935,0.04250392679368243

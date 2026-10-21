@@ -1,17 +1,17 @@
 Esquina,Objetivo,Modelo,Experimento,Conjunto,MAE,RMSE,R2,Pearson
-Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.022683176,0.121728484,0.997644486,0.99882174
+Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.02268317614917834,0.1217284841560966,0.9976444863977099,0.9988217395882399
 Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Validacion,,,,
-Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.068469347,0.257966298,0.993853036,0.999014975
-Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.066478614,0.327637925,0.929399862,0.964533459
-Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.021395771,0.116687435,0.997835541,0.998917322
+Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.0684693470740491,0.25796629752601863,0.9938530358428315,0.9990149748322984
+Slow,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.06647861411734034,0.3276379250161773,0.9293998621945527,0.9645334591831626
+Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.02139577113104121,0.1166874346629247,0.9978355409541086,0.9989173216128394
 Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Validacion,,,,
-Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.034621226,0.123158568,0.998598917,0.999321924
-Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.068016919,0.332463147,0.927305051,0.963389869
-Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",Train final,0.082479418,0.246322101,0.99012179,0.99506261
-Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",Validacion,,,,
-Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",Test Labels,0.105713188,0.366066248,0.98760525,0.998468561
-Fast,Delay,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",Test Designs,0.102629459,0.377009072,0.879875286,0.94127796
-Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.040896727,0.190627367,0.994083812,0.997038872
+Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.034621226202837835,0.12315856841415324,0.9985989165473472,0.9993219238577731
+Slow,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.06801691889572035,0.3324631465979214,0.9273050508627025,0.9633898693771679
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.04307745574957101,0.18745061988943587,0.9942793514991286,0.9971387004310516
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Validacion,,,,
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.10121531699818931,0.3857527232070444,0.9862362618980535,0.9982542089116944
+Fast,Delay,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.09296929979114217,0.3676175282808641,0.8857855151406622,0.9447263637997301
+Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Train final,0.0408967273798261,0.1906273665290323,0.9940838115614503,0.9970388719711633
 Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Validacion,,,,
-Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.195709407,1.081302691,0.891853376,0.991308568
-Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.089482483,0.362495964,0.888945768,0.946230762
+Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Labels,0.19570940695249764,1.0813026914830701,0.8918533759287404,0.9913085675831872
+Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",Test Designs,0.08948248278953777,0.3624959638113158,0.888945767628419,0.9462307624177084

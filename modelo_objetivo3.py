@@ -541,34 +541,39 @@ def crear_experimentos():
     )
 
     # --------------------------------------------------------
-    # GRADIENT BOOSTING
+    # GRADIENT BOOSTING - BARRIDO CONTROLADO DE HOJAS
+    # Solo cambia min_samples_leaf; los demas parametros quedan fijos.
     # --------------------------------------------------------
 
-    experimentos.append(
-        (
-            "Gradient Boosting",
-            {
-                "n_estimators": 100,
-                "learning_rate": 0.05,
-                "max_depth": 3,
-            }
+    for hojas in (1, 2, 4, 8, 16):
+        experimentos.append(
+            (
+                "Gradient Boosting",
+                {
+                    "n_estimators": 100,
+                    "learning_rate": 0.05,
+                    "max_depth": 3,
+                    "min_samples_leaf": hojas,
+                }
+            )
         )
-    )
 
     # --------------------------------------------------------
-    # HIST GRADIENT BOOSTING
+    # HIST GRADIENT BOOSTING - BARRIDO CONTROLADO DE HOJAS
     # --------------------------------------------------------
 
-    experimentos.append(
-        (
-            "Hist Gradient Boosting",
-            {
-                "max_iter": 200,
-                "learning_rate": 0.05,
-                "max_leaf_nodes": 31,
-            }
+    for hojas in (1, 2, 4, 8, 16):
+        experimentos.append(
+            (
+                "Hist Gradient Boosting",
+                {
+                    "max_iter": 200,
+                    "learning_rate": 0.05,
+                    "max_leaf_nodes": 31,
+                    "min_samples_leaf": hojas,
+                }
+            )
         )
-    )
 
     # --------------------------------------------------------
     # SVR
@@ -978,6 +983,87 @@ def guardar_importancias(
     )
 
     plt.close(fig)
+
+
+# ============================================================
+# DIAGNOSTICO DE ERRORES PARA EL BARRIDO DE MIN_SAMPLES_LEAF
+# ============================================================
+
+def guardar_histograma_errores(y_real, y_pred, titulo, ruta):
+    """Guarda la distribucion del error firmado y del error absoluto."""
+    y_real = np.asarray(y_real, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    errores = y_pred - y_real
+    errores = errores[np.isfinite(errores)]
+    if not len(errores):
+        return
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.hist(errores, bins=80, alpha=0.8, edgecolor='black', linewidth=0.25)
+    ax.axvline(0, linestyle='--', color='black', linewidth=1.2)
+    ax.set_title(titulo)
+    ax.set_xlabel('Error firmado = prediccion - valor real')
+    ax.set_ylabel('Numero de muestras')
+    ax.grid(axis='y', alpha=0.25)
+    fig.tight_layout()
+    fig.savefig(ruta, dpi=180)
+    plt.close(fig)
+
+
+def guardar_errores_por_diseno(datos, y_real, y_pred, conjunto, modelo, hojas):
+    """Guarda errores por muestra y un resumen agregado por diseño."""
+    y_real = np.asarray(y_real, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    error = y_pred - y_real
+    error_abs = np.abs(error)
+
+    detalle = pd.DataFrame({
+        'Conjunto': conjunto,
+        'Modelo': modelo,
+        'min_samples_leaf': hojas,
+        'Delta_Fast_real': y_real,
+        'Delta_Fast_predicho': y_pred,
+        'Error_firmado': error,
+        'Error_absoluto': error_abs,
+    })
+    # Incluye una clave de diseño cuando existe; si no, usa la descripción.
+    if 'Design' in datos.columns:
+        detalle.insert(0, 'Design', datos['Design'].astype(str).to_numpy())
+        clave = 'Design'
+    elif 'Description' in datos.columns:
+        detalle.insert(0, 'Description', datos['Description'].astype(str).to_numpy())
+        clave = 'Description'
+    else:
+        detalle.insert(0, 'Fila', np.arange(len(datos)))
+        clave = 'Fila'
+
+    leaf_text = str(hojas).zfill(2)
+    safe_model = modelo.lower().replace(' ', '_')
+    detalle_path = RESULTS_DIR / f'errores_fast_delta_{conjunto.lower().replace(" ", "_")}_{safe_model}_leaf_{leaf_text}.csv'
+    detalle.to_csv(detalle_path, index=False)
+
+    resumen = detalle.groupby(clave, dropna=False).agg(
+        N=('Error_absoluto', 'size'),
+        MAE=('Error_absoluto', 'mean'),
+        RMSE=('Error_firmado', lambda x: float(np.sqrt(np.mean(np.square(x))))),
+        Error_absoluto_max=('Error_absoluto', 'max'),
+        Error_firmado_medio=('Error_firmado', 'mean'),
+    ).reset_index()
+    resumen.insert(0, 'Conjunto', conjunto)
+    resumen.insert(1, 'Modelo', modelo)
+    resumen.insert(2, 'min_samples_leaf', hojas)
+    resumen = resumen.sort_values(['RMSE', 'Error_absoluto_max'], ascending=False)
+    resumen_path = RESULTS_DIR / f'errores_por_diseno_fast_delta_{conjunto.lower().replace(" ", "_")}_{safe_model}_leaf_{leaf_text}.csv'
+    resumen.to_csv(resumen_path, index=False)
+
+    # Histograma con todos los errores, sin eliminar los extremos.
+    guardar_histograma_errores(
+        y_real, y_pred,
+        f'{conjunto} - Fast Delta - {modelo} - min_samples_leaf={hojas}',
+        GRAFICAS_DIR / f'hist_error_fast_delta_{conjunto.lower().replace(" ", "_")}_{safe_model}_leaf_{leaf_text}.png',
+    )
+
+    return detalle, resumen
 
 
 # ============================================================
@@ -1659,6 +1745,64 @@ def main():
                 )
 
                 # --------------------------------------------
+                # NUEVO: diagnostico dedicado para Fast Delta
+                # en las configuraciones del barrido de hojas.
+                # --------------------------------------------
+                if (
+                    esquina == "Fast"
+                    and objetivo == "Delta"
+                    and nombre_modelo in (
+                        "Gradient Boosting",
+                        "Hist Gradient Boosting",
+                    )
+                ):
+                    # Registrar la configuracion experimental en VALIDACION
+                    # y en los dos conjuntos de prueba. Los conjuntos de prueba
+                    # se usan solo para evaluar, nunca para elegir el ganador.
+                    hojas = int(parametros["min_samples_leaf"])
+
+                    registrar(
+                        resultados,
+                        nombre_modelo,
+                        experimento,
+                        "Fast Delta (barrido)",
+                        "Validacion",
+                        "Fast",
+                        train["Delta_Fast"].iloc[indices_validacion],
+                        pred_target_validacion,
+                        len(X_ajuste),
+                        "Delta",
+                    )
+
+                    for conjunto_diag, datos_diag in conjuntos_test.items():
+                        pred_delta_diag = predecir_target(
+                            modelo,
+                            X_tests[conjunto_diag]
+                        )
+
+                        registrar(
+                            resultados,
+                            nombre_modelo,
+                            experimento,
+                            "Fast Delta (barrido)",
+                            conjunto_diag,
+                            "Fast",
+                            datos_diag["Delta_Fast"].to_numpy(float),
+                            pred_delta_diag,
+                            len(X_ajuste),
+                            "Delta",
+                        )
+
+                        guardar_errores_por_diseno(
+                            datos_diag,
+                            datos_diag["Delta_Fast"].to_numpy(float),
+                            pred_delta_diag,
+                            conjunto_diag,
+                            nombre_modelo,
+                            hojas,
+                        )
+
+                # --------------------------------------------
                 # Target puro
                 # --------------------------------------------
 
@@ -2116,12 +2260,11 @@ def main():
                 # --------------------------------------------
 
                 predicciones[
-                    (
-                        conjunto,
-                        esquina,
-                        objetivo,
-                    )
-                ] = pred_delay
+                    (conjunto, esquina, objetivo)
+                ] = {
+                    "target": pred_target,
+                    "delay": pred_delay,
+                    }
 
                 # --------------------------------------------
                 # Grafica real vs predicho
@@ -2304,6 +2447,233 @@ def main():
         resultados
     )
 
+    # ========================================================
+    # NUEVO: TABLA COMPARATIVA DEL BARRIDO DE MIN_SAMPLES_LEAF
+    # Se muestran métricas de Fast Delta y del delay reconstruido.
+    # ========================================================
+    filtro_barrido = (
+        metricas_df["Modelo"].isin([
+            "Gradient Boosting",
+            "Hist Gradient Boosting",
+        ])
+        & metricas_df["Experimento"].astype(str).str.contains("min_samples_leaf")
+        & (metricas_df["Esquina"] == "Fast")
+        & (metricas_df["Objetivo"] == "Delta")
+        & metricas_df["Conjunto"].isin([
+            "Validacion", "Test Labels", "Test Designs"
+        ])
+    )
+    barrido_df = metricas_df.loc[filtro_barrido].copy()
+    if not barrido_df.empty:
+        barrido_df.to_csv(
+            RESULTS_DIR / "comparacion_min_samples_leaf_fast_delta.csv",
+            index=False,
+        )
+
+    # Tabla compacta para comparar directamente el RMSE de Fast Delta.
+    barrido_delta = barrido_df[
+        barrido_df["Metrica_evaluada"] == "Delta"
+    ].copy()
+    if not barrido_delta.empty:
+        filtro_baseline_fast = (
+            (metricas_df["Modelo"] == "Baseline")
+            & (metricas_df["Objetivo"] == "Delta")
+            & (metricas_df["Esquina"] == "Fast")
+            & (metricas_df["Metrica_evaluada"] == "Delta")
+            & metricas_df["Conjunto"].isin([
+                "Validacion", "Test Labels", "Test Designs"
+            ])
+        )
+        baseline_fast = metricas_df.loc[
+            filtro_baseline_fast,
+            ["Conjunto", "RMSE"]
+        ].rename(columns={"RMSE": "RMSE_Delta_baseline"})
+        barrido_delta = barrido_delta.merge(
+            baseline_fast,
+            on="Conjunto",
+            how="left",
+        )
+        barrido_delta["Mejora_RMSE_vs_baseline_pct"] = np.where(
+            barrido_delta["RMSE_Delta_baseline"] > 0,
+            (barrido_delta["RMSE_Delta_baseline"] - barrido_delta["RMSE"])
+            / barrido_delta["RMSE_Delta_baseline"] * 100,
+            np.nan,
+        )
+        barrido_delta["Mejora_vs_baseline"] = (
+            barrido_delta["RMSE"] < barrido_delta["RMSE_Delta_baseline"]
+        )
+        barrido_delta.to_csv(
+            RESULTS_DIR / "resumen_min_samples_leaf_fast_delta.csv",
+            index=False,
+        )
+
+    # ========================================================
+    # NUEVO: EVALUACION EXPLICITA DE FAST DELTA EN LOS 3 CONJUNTOS
+    # Incluye baseline Delta=0 y errores extremos para cada configuracion.
+    # Los conjuntos de prueba NO se usan para seleccionar el modelo.
+    # ========================================================
+
+    filas_fast_delta_evaluacion = []
+
+    barrido_fast = metricas_df[
+        (metricas_df["Objetivo"] == "Fast Delta (barrido)")
+        & (metricas_df["Esquina"] == "Fast")
+        & (metricas_df["Metrica_evaluada"] == "Delta")
+        & metricas_df["Conjunto"].isin([
+            "Validacion", "Test Labels", "Test Designs"
+        ])
+    ].copy()
+
+    for conjunto_diag, datos_diag in [
+        ("Validacion", train.iloc[indices_validacion]),
+        ("Test Labels", test_labels),
+        ("Test Designs", test_designs),
+    ]:
+        delta_real = datos_diag["Delta_Fast"].to_numpy(dtype=float)
+        error_baseline = -delta_real  # baseline predice Delta = 0
+        abs_baseline = np.abs(error_baseline)
+
+        filas_fast_delta_evaluacion.append({
+            "Modelo": "Baseline",
+            "Experimento": "Delta=0",
+            "Conjunto": conjunto_diag,
+            "min_samples_leaf": np.nan,
+            "MAE_Delta": float(np.mean(abs_baseline)),
+            "RMSE_Delta": float(np.sqrt(np.mean(error_baseline ** 2))),
+            "Error_absoluto_P95": float(np.percentile(abs_baseline, 95)),
+            "Error_absoluto_P99": float(np.percentile(abs_baseline, 99)),
+            "Error_absoluto_max": float(np.max(abs_baseline)),
+            "N_error_abs_mayor_0_1": int(np.sum(abs_baseline > 0.1)),
+            "N_error_abs_mayor_0_5": int(np.sum(abs_baseline > 0.5)),
+            "N_error_abs_mayor_1": int(np.sum(abs_baseline > 1.0)),
+        })
+
+        for _, fila in barrido_fast[
+            barrido_fast["Conjunto"] == conjunto_diag
+        ].iterrows():
+            parametros = json.loads(fila["Experimento"])
+            hojas = int(parametros["min_samples_leaf"])
+            modelo_nombre = fila["Modelo"]
+            leaf_text = str(hojas).zfill(2)
+            safe_model = modelo_nombre.lower().replace(" ", "_")
+            detalle_path = RESULTS_DIR / (
+                f"errores_fast_delta_{conjunto_diag.lower().replace(' ', '_')}_"
+                f"{safe_model}_leaf_{leaf_text}.csv"
+            )
+
+            if not detalle_path.exists():
+                continue
+
+            detalle = pd.read_csv(detalle_path)
+            abs_error = detalle["Error_absoluto"].to_numpy(dtype=float)
+
+            filas_fast_delta_evaluacion.append({
+                "Modelo": modelo_nombre,
+                "Experimento": fila["Experimento"],
+                "Conjunto": conjunto_diag,
+                "min_samples_leaf": hojas,
+                "MAE_Delta": float(np.mean(abs_error)),
+                "RMSE_Delta": float(np.sqrt(np.mean(abs_error ** 2))),
+                "Error_absoluto_P95": float(np.percentile(abs_error, 95)),
+                "Error_absoluto_P99": float(np.percentile(abs_error, 99)),
+                "Error_absoluto_max": float(np.max(abs_error)),
+                "N_error_abs_mayor_0_1": int(np.sum(abs_error > 0.1)),
+                "N_error_abs_mayor_0_5": int(np.sum(abs_error > 0.5)),
+                "N_error_abs_mayor_1": int(np.sum(abs_error > 1.0)),
+            })
+
+    evaluacion_fast_delta_df = pd.DataFrame(filas_fast_delta_evaluacion)
+    if not evaluacion_fast_delta_df.empty:
+        baseline_rmse = (
+            evaluacion_fast_delta_df[
+                evaluacion_fast_delta_df["Modelo"] == "Baseline"
+            ][["Conjunto", "RMSE_Delta"]]
+            .rename(columns={"RMSE_Delta": "RMSE_Delta_baseline"})
+        )
+        evaluacion_fast_delta_df = evaluacion_fast_delta_df.merge(
+            baseline_rmse,
+            on="Conjunto",
+            how="left",
+        )
+        evaluacion_fast_delta_df["Mejora_RMSE_vs_baseline_pct"] = np.where(
+            evaluacion_fast_delta_df["RMSE_Delta_baseline"] > 0,
+            (
+                evaluacion_fast_delta_df["RMSE_Delta_baseline"]
+                - evaluacion_fast_delta_df["RMSE_Delta"]
+            ) / evaluacion_fast_delta_df["RMSE_Delta_baseline"] * 100,
+            np.nan,
+        )
+        evaluacion_fast_delta_df["Mejora_RMSE_vs_baseline"] = (
+            evaluacion_fast_delta_df["RMSE_Delta"]
+            < evaluacion_fast_delta_df["RMSE_Delta_baseline"]
+        )
+        evaluacion_fast_delta_df.to_csv(
+            RESULTS_DIR / "evaluacion_completa_fast_delta.csv",
+            index=False,
+        )
+
+    # ========================================================
+    # COMPARACION DEL DELTA CONTRA SU BASELINE
+    # Se compara Delta real con Delta predicho.
+    # El baseline predice siempre Delta = 0.
+    # ========================================================
+
+    filas_comparacion_delta = []
+
+    for esquina in ("Slow", "Fast"):
+        for conjunto in (
+            "Train",
+            "Validacion",
+            "Test Labels",
+            "Test Designs",
+        ):
+            # Baseline: predice Delta = 0
+            filtro_baseline = (
+                (metricas_df["Modelo"] == "Baseline")
+                & (metricas_df["Objetivo"] == "Delta")
+                & (metricas_df["Conjunto"] == conjunto)
+                & (metricas_df["Esquina"] == esquina)
+                & (metricas_df["Metrica_evaluada"] == "Delta")
+            )
+
+            # Modelo ganador: predice Delta
+            filtro_modelo = (
+                (metricas_df["Objetivo"] == "Delta (final)")
+                & (metricas_df["Conjunto"] == conjunto)
+                & (metricas_df["Esquina"] == esquina)
+                & (metricas_df["Metrica_evaluada"] == "Delta")
+            )
+
+            baseline = metricas_df.loc[filtro_baseline]
+            modelo = metricas_df.loc[filtro_modelo]
+
+            if not baseline.empty and not modelo.empty:
+                b = baseline.iloc[0]
+                m = modelo.iloc[0]
+
+                filas_comparacion_delta.append({
+                    "Esquina": esquina,
+                    "Conjunto": conjunto,
+                    "Modelo": m["Modelo"],
+                    "RMSE_Delta_baseline": b["RMSE"],
+                    "RMSE_Delta_modelo": m["RMSE"],
+                    "Mejora_porcentual": (
+                        (b["RMSE"] - m["RMSE"]) / b["RMSE"] * 100
+                        if b["RMSE"] != 0 else np.nan
+                    ),
+                    "Modelo_mejora_baseline": m["RMSE"] < b["RMSE"],
+                })
+
+    comparacion_delta_baseline = pd.DataFrame(
+        filas_comparacion_delta
+    )
+
+    comparacion_delta_baseline.to_csv(
+        RESULTS_DIR / "comparacion_delta_baseline.csv",
+        index=False,
+    )
+
+
     metricas_df.to_csv(
 
         RESULTS_DIR
@@ -2419,89 +2789,61 @@ def main():
                 ),
             )
 
-    # ========================================================
+    
+    # ============================================================
     # PREDICCIONES DE TEST
-    # ========================================================
+    # ============================================================
 
-    for conjunto, datos in (
-        conjuntos_test.items()
-    ):
-
-        columnas = [
-            "Delay_Typical",
-            "Delay_Slow",
-            "Delay_Fast",
-        ]
-
-        for columna in (
-            "row_id",
-            "Design",
-            "Previous_description",
-            "Description",
-        ):
-
-            if columna in datos.columns:
-
-                columnas.insert(
-                    0,
-                    columna
-                )
+    for conjunto, datos in conjuntos_test.items():
 
         pred_df = datos[
-            columnas
+            COLUMNAS_LLAVE + [
+                "Delay_Typical",
+                "Delay_Slow",
+                "Delay_Fast",
+                "Delta_Slow",
+                "Delta_Fast",
+            ]
         ].copy()
 
-        for esquina in (
-            "Slow",
-            "Fast",
-        ):
+        for esquina in ("Slow", "Fast"):
 
-            # --------------------------------------------
-            # Baseline
-            # --------------------------------------------
-
-            pred_df[
-                f"Baseline_{esquina}"
-            ] = (
-                datos[
-                    "Delay_Typical"
-                ].to_numpy()
+            # Baseline: usar directamente el delay Typical
+            pred_df[f"Baseline_{esquina}"] = (
+                datos["Delay_Typical"].to_numpy()
             )
 
-            # --------------------------------------------
-            # Delay / Delta
-            # --------------------------------------------
+            # Modelo entrenado para predecir el delay directamente
+            pred_df[f"Predicted_{esquina}_Delay"] = (
+                predicciones[(conjunto, esquina, "Delay")]["delay"]
+            )
 
-            for objetivo in (
-                "Delay",
-                "Delta",
-            ):
+            # Modelo entrenado para predecir el delta
+            pred_df[f"Predicted_{esquina}_Delta"] = (
+                predicciones[(conjunto, esquina, "Delta")]["target"]
+            )
 
-                pred_df[
-                    f"Predicted_{esquina}_{objetivo}"
-                ] = predicciones[
-                    (
-                        conjunto,
-                        esquina,
-                        objetivo,
-                    )
-                ]
+            # Reconstrucción del delay a partir del delta predicho
+            pred_df[f"Predicted_{esquina}_Delay_from_Delta"] = (
+                predicciones[(conjunto, esquina, "Delta")]["delay"]
+            )
+
+        nombre_archivo = (
+            f"predicciones_{conjunto.lower().replace(' ', '_')}.csv"
+        )
 
         pred_df.to_csv(
-
-            RESULTS_DIR
-            / (
-                "predicciones_"
-                f"{conjunto.lower().replace(' ', '_')}.csv"
-            ),
-
+            RESULTS_DIR / nombre_archivo,
             index=False,
         )
 
+        print(f"Predicciones guardadas: {RESULTS_DIR / nombre_archivo}")
+
+
+
+
     # ========================================================
     # TABLA DE 4 CONJUNTOS
-    #
-    # Esta es especialmente util para la reunion.
     # ========================================================
 
     filas_tabla = []
@@ -3245,6 +3587,30 @@ def main():
 
     print(
         " - diagnostico_distribucion_delta.csv"
+    )
+
+    print(
+        " - comparacion_min_samples_leaf_fast_delta.csv"
+    )
+
+    print(
+        " - resumen_min_samples_leaf_fast_delta.csv"
+    )
+
+    print(
+        " - evaluacion_completa_fast_delta.csv"
+    )
+
+    print(
+        " - errores_fast_delta_*.csv"
+    )
+
+    print(
+        " - errores_por_diseno_fast_delta_*.csv"
+    )
+
+    print(
+        " - hist_error_fast_delta_*.png"
     )
 
     print(

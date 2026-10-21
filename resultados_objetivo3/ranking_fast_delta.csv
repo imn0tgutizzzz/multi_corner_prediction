@@ -1,20 +1,28 @@
 Esquina,Objetivo,Modelo,Experimento,RMSE_Delay_Validacion
 Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 4, ""n_estimators"": 100}",0.27787045873880545
-Fast,Delta,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31}",0.278616038692145
+Fast,Delta,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31, ""min_samples_leaf"": 16}",0.2875142036486671
 Fast,Delta,Random Forest,"{""max_depth"": 30, ""min_samples_leaf"": 2, ""n_estimators"": 100}",0.28885806750884685
 Fast,Delta,Random Forest,"{""max_depth"": null, ""min_samples_leaf"": 2, ""n_estimators"": 100}",0.28886730500401087
 Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 500}",0.28937431840401273
 Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 100}",0.289427017426672
 Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 200}",0.2898533938838632
+Fast,Delta,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31, ""min_samples_leaf"": 2}",0.2899044220767607
 Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 300}",0.2900999355829132
-Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 50}",0.29109154638644114
+Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 50}",0.2910915463864412
+Fast,Delta,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31, ""min_samples_leaf"": 8}",0.30194257462256746
 Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 1, ""n_estimators"": 100}",0.30228666132818033
-Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 10}",0.306517757514576
+Fast,Delta,Random Forest,"{""max_depth"": 20, ""min_samples_leaf"": 2, ""n_estimators"": 10}",0.30651775751457594
 Fast,Delta,Random Forest,"{""max_depth"": 10, ""min_samples_leaf"": 2, ""n_estimators"": 100}",0.30766966477498214
 Fast,Delta,XGBoost,"{""colsample_bytree"": 0.9, ""learning_rate"": 0.05, ""max_depth"": 5, ""n_estimators"": 500, ""subsample"": 0.9}",0.31146484986384126
 Fast,Delta,XGBoost,"{""colsample_bytree"": 0.9, ""learning_rate"": 0.05, ""max_depth"": 5, ""n_estimators"": 300, ""subsample"": 0.9}",0.3152745850073138
+Fast,Delta,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31, ""min_samples_leaf"": 1}",0.3155561322070407
 Fast,Delta,XGBoost,"{""colsample_bytree"": 0.9, ""learning_rate"": 0.05, ""max_depth"": 5, ""n_estimators"": 200, ""subsample"": 0.9}",0.31932861637858884
+Fast,Delta,Hist Gradient Boosting,"{""learning_rate"": 0.05, ""max_iter"": 200, ""max_leaf_nodes"": 31, ""min_samples_leaf"": 4}",0.32444553677136145
 Fast,Delta,XGBoost,"{""colsample_bytree"": 0.9, ""learning_rate"": 0.05, ""max_depth"": 5, ""n_estimators"": 100, ""subsample"": 0.9}",0.32460058065631114
+Fast,Delta,Gradient Boosting,"{""learning_rate"": 0.05, ""max_depth"": 3, ""min_samples_leaf"": 16, ""n_estimators"": 100}",0.3260268144701624
 Fast,Delta,SVR,"{""C"": 1.0, ""epsilon"": 0.1, ""kernel"": ""rbf""}",0.3282858770589074
 Fast,Delta,Ridge,"{""alpha"": 1.0}",0.328451810069409
-Fast,Delta,Gradient Boosting,"{""learning_rate"": 0.05, ""max_depth"": 3, ""n_estimators"": 100}",0.3472936767474207
+Fast,Delta,Gradient Boosting,"{""learning_rate"": 0.05, ""max_depth"": 3, ""min_samples_leaf"": 8, ""n_estimators"": 100}",0.3332244674964074
+Fast,Delta,Gradient Boosting,"{""learning_rate"": 0.05, ""max_depth"": 3, ""min_samples_leaf"": 1, ""n_estimators"": 100}",0.3472936767474207
+Fast,Delta,Gradient Boosting,"{""learning_rate"": 0.05, ""max_depth"": 3, ""min_samples_leaf"": 4, ""n_estimators"": 100}",0.3518621133150866
+Fast,Delta,Gradient Boosting,"{""learning_rate"": 0.05, ""max_depth"": 3, ""min_samples_leaf"": 2, ""n_estimators"": 100}",0.35751229537950274

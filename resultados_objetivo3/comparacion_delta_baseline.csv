@@ -1,0 +1,5 @@
+Esquina,Conjunto,Modelo,RMSE_Delta_baseline,RMSE_Delta_modelo,Mejora_porcentual,Modelo_mejora_baseline
+Slow,Test Labels,Random Forest,0.09103228939522011,0.12315856841415324,-35.29108103549464,False
+Slow,Test Designs,Random Forest,0.334651042395327,0.3324631465979214,0.6537842469413244,True
+Fast,Test Labels,Random Forest,0.14498333868516822,1.0813026914830697,-645.8116920807859,False
+Fast,Test Designs,Random Forest,0.36793355025129704,0.3624959638113158,1.4778718701426832,True
